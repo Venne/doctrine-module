@@ -434,7 +434,7 @@ class DoctrineExtension extends CompilerExtension
 	protected function registerListeners()
 	{
 		$container = $this->getContainerBuilder();
-		$evm = $container->getDefinition('eventManager');
+		$evm = $container->getDefinition('doctrine.eventManagers.default');
 
 		foreach ($this->getSortedServices($container, "listener") as $item) {
 			$evm->addSetup("addEventSubscriber", "@{$item}");
