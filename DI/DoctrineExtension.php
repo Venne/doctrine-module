@@ -407,6 +407,7 @@ class DoctrineExtension extends CompilerExtension
 
 		$this->prepareRepositories();
 		$this->registerListeners();
+		$this->registerCommands();
 	}
 
 
@@ -441,6 +442,16 @@ class DoctrineExtension extends CompilerExtension
 		}
 	}
 
+
+	protected function registerCommands()
+	{
+		$container = $this->getContainerBuilder();
+		$console = $container->getDefinition($this->prefix('console'));
+
+		foreach ($this->getSortedServices($container, "command") as $item) {
+			$console->addSetup("add", "@{$item}");
+		}
+	}
 
 
 	/**
