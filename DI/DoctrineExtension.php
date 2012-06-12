@@ -246,6 +246,12 @@ class DoctrineExtension extends CompilerExtension
 			->setFactory(get_called_class() . '::createConsoleHelperSet', array(
 			$this->entityManagersPrefix('@default'), '@container'
 		));
+
+		// console
+		$container->addDefinition($this->prefix('console'))
+			->setClass('Symfony\Component\Console\Application')
+			->addSetup('setHelperSet', array('@doctrine.consoleHelperset'))
+			->addSetup('setCatchExceptions', false);
 	}
 
 
