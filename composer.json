@@ -1,0 +1,17 @@
+{
+	"name": "venne/doctrine-module",
+	"description": "Doctrine module with macros and components",
+	"keywords": ["cms", "nette", "venne", "module"],
+	"homepage": "https://github.com/Venne/DoctrineModule",
+	"authors": [
+		{
+			"name": "Josef Kříž",
+			"homepage": "http://josef-kriz.cz"
+		}
+	],
+	"require": {
+		"php" : ">=5.3.2",
+		"venne/venne" : "dev-master",
+		"venne/forms-module" : "dev-master"
+	}
+}
