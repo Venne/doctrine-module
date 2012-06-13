@@ -126,7 +126,7 @@ class DoctrineExtension extends CompilerExtension
 
 
 		// schemaManagers
-		foreach ($config["eventManagers"] as $name => $sm) {
+		foreach ($config["schemaManagers"] as $name => $sm) {
 			$cfg = $sm + $this->schemaManagerDefaults;
 			$this->processSchemaManager($name, $cfg);
 		}
@@ -285,7 +285,7 @@ class DoctrineExtension extends CompilerExtension
 
 		$container->addDefinition($this->schemaManagersPrefix($name))
 			->setClass("Doctrine\DBAL\Schema\AbstractSchemaManager")
-			->setFactory($this->configurationsPrefix('@' . $config['connection']) . "::getSchemaManager");
+			->setFactory($this->connectionsPrefix('@' . $config['connection']) . "::getSchemaManager");
 	}
 
 
