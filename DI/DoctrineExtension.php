@@ -185,8 +185,15 @@ class DoctrineExtension extends CompilerExtension
 		$container->addDefinition($this->configurationsPrefix($name . 'CachedAnnotationReader'))
 			->setClass("Doctrine\Common\Annotations\CachedReader", array($this->configurationsPrefix('@' . $name . 'AnnotationReader'), "@doctrine.cache"))
 			->setInternal(true);
+
+		$paths = array($container->parameters["appDir"]);
+		foreach ($container->parameters["modules"] as $module => $item) {
+			$class = "\\{$module}Module\\Module";
+			$module = new $class;
+			$paths[] = $module->getPath();
+		}
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationDriver'))
-			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), array($container->parameters["appDir"], $container->parameters["libsDir"] . '/venne')))
+			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), $paths))
 			->addSetup('setFileExtension', 'Entity.php')
 			->setInternal(true);
 
