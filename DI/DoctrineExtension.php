@@ -163,9 +163,6 @@ class DoctrineExtension extends CompilerExtension
 
 		$container->addDefinition($this->prefix("entityFormMapper"))
 			->setClass("DoctrineModule\Forms\Mapping\EntityFormMapper", array("@entityManager", new \DoctrineModule\Mapping\TypeMapper));
-
-
-		$this->processConsole();
 	}
 
 
@@ -248,34 +245,20 @@ class DoctrineExtension extends CompilerExtension
 			->addTag('command')
 			->setAutowired(FALSE);
 
-		$container->addDefinition($this->prefix('consoleHelperset'))
-			->setClass('Symfony\Component\Console\Helper\HelperSet')
-			->setFactory(get_called_class() . '::createConsoleHelperSet', array(
-			$this->entityManagersPrefix('@default'), '@container'
-		));
-
-		// console
-		$container->addDefinition($this->prefix('console'))
-			->setClass('Symfony\Component\Console\Application')
-			->addSetup('setHelperSet', array('@doctrine.consoleHelperset'))
-			->addSetup('setCatchExceptions', false);
+		// Helpers
+		$container->addDefinition($this->prefix('entityManagerHelper'))
+			->setClass('Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper', array('@entityManager'))
+			->addTag(array('commandHelper' => 'em'))
+			->setAutowired(FALSE);
+		$container->addDefinition($this->prefix('connectionHelper'))
+			->setClass('Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper', array('@entityManager::getConnection()'))
+			->addTag(array('commandHelper' => 'db'))
+			->setAutowired(FALSE);
+		$container->addDefinition($this->prefix('dialogHelper'))
+			->setClass('Symfony\Component\Console\Helper\DialogHelper')
+			->addTag(array('commandHelper' => 'dialog'))
+			->setAutowired(FALSE);
 	}
-
-
-	/**
-	 * @param \Doctrine\ORM\EntityManager
-	 * @return \Symfony\Component\Console\Helper\HelperSet
-	 */
-	public static function createConsoleHelperSet(\Doctrine\ORM\EntityManager $em)
-	{
-		$helperSet = new \Symfony\Component\Console\Helper\HelperSet;
-		$helperSet->set(new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em), 'em');
-		$helperSet->set(new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($em->getConnection()), 'db');
-		$helperSet->set(new \Symfony\Component\Console\Helper\DialogHelper, 'dialog');
-
-		return $helperSet;
-	}
-
 
 	protected function processEventManager($name, array $config)
 	{
@@ -420,7 +403,6 @@ class DoctrineExtension extends CompilerExtension
 
 		$this->prepareRepositories();
 		$this->registerListeners();
-		$this->registerCommands();
 	}
 
 
@@ -454,18 +436,6 @@ class DoctrineExtension extends CompilerExtension
 			$evm->addSetup("addEventSubscriber", "@{$item}");
 		}
 	}
-
-
-	protected function registerCommands()
-	{
-		$container = $this->getContainerBuilder();
-		$console = $container->getDefinition($this->prefix('console'));
-
-		foreach ($this->getSortedServices($container, "command") as $item) {
-			$console->addSetup("add", "@{$item}");
-		}
-	}
-
 
 	/**
 	 * @param \Nette\DI\ContainerBuilder $container
