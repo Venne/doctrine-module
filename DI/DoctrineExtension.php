@@ -163,6 +163,8 @@ class DoctrineExtension extends CompilerExtension
 
 		$container->addDefinition($this->prefix("entityFormMapper"))
 			->setClass("DoctrineModule\Forms\Mapping\EntityFormMapper", array("@entityManager", new \DoctrineModule\Mapping\TypeMapper));
+
+		$this->processConsole();
 	}
 
 
@@ -248,15 +250,15 @@ class DoctrineExtension extends CompilerExtension
 		// Helpers
 		$container->addDefinition($this->prefix('entityManagerHelper'))
 			->setClass('Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper', array('@entityManager'))
-			->addTag(array('commandHelper' => 'em'))
+			->addTag('commandHelper', 'em')
 			->setAutowired(FALSE);
 		$container->addDefinition($this->prefix('connectionHelper'))
-			->setClass('Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper', array('@entityManager::getConnection()'))
-			->addTag(array('commandHelper' => 'db'))
+			->setClass('Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper', array('@'.$this->connectionsPrefix('default')))
+			->addTag('commandHelper', 'db')
 			->setAutowired(FALSE);
 		$container->addDefinition($this->prefix('dialogHelper'))
 			->setClass('Symfony\Component\Console\Helper\DialogHelper')
-			->addTag(array('commandHelper' => 'dialog'))
+			->addTag('commandHelper', 'dialog')
 			->setAutowired(FALSE);
 	}
 
