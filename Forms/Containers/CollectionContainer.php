@@ -18,253 +18,270 @@ use Doctrine\ORM\UnitOfWork;
 use Venne;
 use Nette;
 use Nette\ComponentModel\IContainer;
+use DoctrineModule\Forms\Containers\Doctrine\EntityContainer;
 
 
 /**
  * @author Filip Procházka <filip.prochazka@kdyby.org>
- *
- * @method Venne\Forms\EntityForm getForm() getForm()
+ * @method \Kdyby\Doctrine\Forms\Form getForm(bool $need = TRUE)
+ * @method \Kdyby\Doctrine\Forms\Form|\Kdyby\Doctrine\Forms\EntityContainer getParent()
  */
-class CollectionContainer extends Nette\Forms\Container
+class CollectionContainer extends \FormsModule\Containers\Replicator implements IObjectContainer
 {
 
-	/** @var object */
-	private $parentEntity;
+	/** @var string */
+	public $containerClass = 'DoctrineModule\Forms\Containers\EntityContainer';
 
-	/** @var Collection */
+	/** @var \Kdyby\Doctrine\Forms\EntityMapper */
+	private $mapper;
+
+	/** @var \Doctrine\Common\Collections\Collection */
 	private $collection;
 
-	/** @var callback */
+	/** @var \Nette\Callback */
 	private $entityFactory;
 
-	/** @var callback|EntityContainer */
-	private $containerFactory;
-
 
 
 	/**
-	 * @param object $entity
-	 * @param callback $containerFactory
+	 * @param \Doctrine\Common\Collections\Collection $collection
+	 * @param callback $factory
+	 * @param \Kdyby\Doctrine\Forms\EntityMapper $mapper
 	 */
-	public function __construct($parentEntity, $containerFactory, $entityFactory)
+	public function __construct(Collection $collection, $factory, EntityMapper $mapper = NULL)
 	{
-		parent::__construct(NULL, NULL);
-		$this->monitor('Venne\Forms\EntityForm');
+		parent::__construct($factory);
+		$this->monitor('DoctrineModule\Forms\Form');
 
-		if (!is_callable($containerFactory) && !$containerFactory instanceof EntityContainer) {
-			throw new Nette\InvalidArgumentException("Given container factory must be either callable or instanceof Kdyby\\Forms\\Containers\\Doctrine\\EntityContainer.");
-		}
-
-		if ($containerFactory instanceof EntityContainer && $containerFactory->parent) {
-			throw new Nette\InvalidArgumentException("Given entity container must not be attached.");
-		}
-
-		$this->entityFactory = $entityFactory;
-		$this->parentEntity = $parentEntity;
-		$this->containerFactory = $containerFactory;
+		$this->collection = $collection;
+		$this->mapper = $mapper;
 	}
 
 
 
 	/**
-	 * @param callback $entityFactory
+	 * function(object $parentEntity, CollectionContainer $container);
+	 *
+	 * @param callback $factory
 	 */
-	public function setEntityFactory($entityFactory)
+	public function setEntityFactory($factory)
 	{
-		if (!is_callable($entityFactory)) {
-			throw new Kdyby\InvalidArgumentException("Given entity factory is not callable.");
-		}
-
-		$this->entityFactory = $entityFactory;
+		$this->entityFactory = callback($factory);
 	}
 
 
 
 	/**
-	 * @return Collection
+	 * @return \Nette\Callback
+	 */
+	public function getEntityFactory()
+	{
+		return $this->entityFactory;
+	}
+
+
+
+	/**
+	 * @param  \Nette\ComponentModel\IContainer
+	 * @throws \Kdyby\InvalidStateException
+	 */
+	protected function validateParent(Nette\ComponentModel\IContainer $parent)
+	{
+		parent::validateParent($parent);
+
+		if (!$parent instanceof IObjectContainer && !$this->getForm(FALSE) instanceof IObjectContainer) {
+			throw new \Nette\InvalidStateException(
+				'Valid parent for Kdyby\Doctrine\Forms\EntityContainer ' .
+					'is only Kdyby\Doctrine\Forms\IObjectContainer, ' .
+					'instance of "' . get_class($parent) . '" given'
+			);
+		}
+	}
+
+
+
+	/**
+	 * @return \Doctrine\Common\Collections\Collection
 	 */
 	public function getCollection()
 	{
-		if (!$this->collection) {
-			throw new Kdyby\InvalidStateException("Collection is not yet available. Container must be attached to form first.");
-		}
-
 		return $this->collection;
 	}
 
 
 
 	/**
-	 * @param Nette\ComponentModel\Container $obj
+	 * @param bool $need
+	 *
+	 * @return \Nette\Application\UI\Presenter
 	 */
-	protected function attached($obj)
+	public function getPresenter($need = TRUE)
 	{
-		parent::attached($obj);
-
-		if (!$obj instanceof \DoctrineModule\Forms\Form) {
-			return;
-		}
-
-		$form = $obj;
-		$this->collection = $form->getMapper()->getAssociation($this->parentEntity, $this->name);
-		$parentMeta = $form->getMapper()->getEntityMetadata($this->parentEntity);
-		$assocMapping = $parentMeta->getAssociationMapping($this->name);
-
-		if (!is_callable($this->entityFactory)) {
-			$this->entityFactory = function () use ($assocMapping)
-			{
-				return new $assocMapping['targetEntity']();
-			};
-		}
-
-		$this->doCreateEntityContainers($form);
+		return $this->lookup('Nette\Application\UI\Presenter', $need);
 	}
 
 
 
 	/**
-	 * @param Kdyby\Forms\EntityForm $form
+	 * @return \Kdyby\Doctrine\Forms\EntityMapper
 	 */
-	protected function doCreateEntityContainers(Venne\Forms\EntityForm $form)
+	private function getMapper()
 	{
-		foreach ($this->collection as $entity) {
-			// important: entities must have their id's from database!
-			// todo: resolve managed, bug not persisted entities
-			$containerName = $this->doResolveContainerName($entity);
-			$identifierValues = $this->doGetIdentifierValues($entity);
-			$container = $this->doCreateContainer($entity, $containerName, $identifierValues);
+		return $this->mapper ? : $this->getForm()->getMapper();
+	}
 
-			// check for existing relations
-			foreach ($identifierValues as $field => $value) {
-				if ($value && $container[$field]->value != $value) {
-					$container[$field]->addError("CSRF: záznamy si neodpovídají");
-				}
+
+
+	/**
+	 * @param \Nette\ComponentModel\Container $obj
+	 */
+	protected function attached($obj)
+	{
+		$this->initContainers();
+		parent::attached($obj);
+		$this->clearContainers();
+	}
+
+
+
+	/**
+	 * Initialize entity containers from given collection
+	 */
+	protected function initContainers()
+	{
+		if (!$this->getPresenter(FALSE)) {
+			return; // only if attached to presenter
+		}
+
+		$this->getMapper()->assignCollection($this->collection, $this);
+		if ($this->getForm()->isSubmitted()) {
+			return; // only if not submitted
+		}
+
+		foreach ($this->collection as $index => $entity) {
+			$this->createOne($index);
+		}
+	}
+
+
+
+	/**
+	 * Clear containers, that were not submitted
+	 */
+	protected function clearContainers()
+	{
+		if (!$this->getPresenter(FALSE) || !$this->getForm()->isSubmitted()) {
+			return; // only if attached to presenter & submitted
+		}
+
+		foreach ($this->collection->toArray() as $entity) {
+			if (!$this->getMapper()->getComponent($entity)) {
+				$this->getMapper()->remove($entity);
+			}
+		}
+	}
+
+
+
+	/**
+	 * @param integer $index
+	 *
+	 * @return \Kdyby\Doctrine\Forms\EntityContainer
+	 */
+	protected function createContainer($index)
+	{
+		if (!$this->getForm()->isSubmitted()) {
+			return $this->createNewContainer($index);
+		}
+
+		if ($values = $this->getContainerValues($index)) {
+			if ($entity = $this->getMapper()->getCollectionEntry($this, $values)) {
+				$class = $this->containerClass;
+				return new $class($entity);
 			}
 		}
 
-		// when submitted, process newly created entities
-		if (!$form->isAnchored() || !$form->isSubmitted()) {
-			return;
+		return $this->createNewContainer($index);
+	}
+
+
+
+	/**
+	 * @param int $index
+	 * @return \Kdyby\Doctrine\Forms\EntityContainer
+	 */
+	private function createNewContainer($index)
+	{
+		if (!$this->collection->containsKey($index)) {
+			$this->collection->set($index, $this->createNewEntity());
 		}
 
-		$received = array_filter((array)$this->getHttpData(), callback('is_array'));
-		foreach ($received as $containerName => $componentData) {
-			if (!$this->getComponent($containerName, FALSE)) {
-				$entity = $this->doCreateNewEntity();
-				$container = $this->doCreateContainer($entity, $containerName);
-			}
-		}
+		$class = $this->containerClass;
+		return new $class($this->collection->get($index));
+	}
+
+
+
+	/**
+	 * @return object|NULL
+	 */
+	protected function getParentEntity()
+	{
+		return $this->getParent()->getEntity();
+	}
+
+
+
+	/**
+	 * @return string
+	 */
+	protected function getClassName()
+	{
+		return $this->getMapper()->getTargetClassName($this->getParentEntity(), $this->getName());
 	}
 
 
 
 	/**
 	 * @return object
+	 * @throws \Kdyby\UnexpectedValueException
 	 */
-	protected function doCreateNewEntity()
+	protected function createNewEntity()
 	{
-		return call_user_func($this->entityFactory, $this);
-	}
-
-
-
-	/**
-	 * @param object $entity
-	 * @return array
-	 */
-	protected function doGetIdentifierValues($entity)
-	{
-		$meta = $this->getForm()->getMapper()->getEntityMetadata($entity);
-		return $meta->getIdentifierValues($entity);
-	}
-
-
-
-	/**
-	 * @param object $entity
-	 * @return string
-	 */
-	protected function doResolveContainerName($entity)
-	{
-		$identifierValues = $this->doGetIdentifierValues($entity);
-
-		if ($identifierValues) {
-			return 'e_edit_' . implode('_', array_map(function ($id)
-			{
-				return str_replace('-', '', Nette\Utils\Strings::webalize($id));
-			}, $identifierValues));
-		}
-
-		return 'e_create_' . count($this->components) + 1;
-	}
-
-
-
-	/**
-	 * @param object $entity
-	 * @param string $containerName
-	 * @param array $identifierValues
-	 * @return EntityContainer
-	 */
-	protected function doCreateContainer($entity, $containerName, array $identifierValues = array())
-	{
-		$container = NULL;
-		if ($this->containerFactory instanceof EntityContainer) {
-			// when given container
-			$this->addComponent($container = clone $this->containerFactory, $containerName);
+		$className = $this->getClassName();
+		if ($factory = $this->getEntityFactory()) {
+			$parentEntity = $this->getParentEntity();
+			$related = $factory($parentEntity, $this);
+			if (!$related instanceof $className) {
+				throw new \Nette\UnexpectedValueException(
+					'Factory of CollectionContainer ' . $this->name .
+						'must return an instance of "' . $className . '", ' .
+						Kdyby\Tools\Mixed::getType($related) . ' returned.'
+				);
+			}
 
 		} else {
-			// when given callback
-			$this->addComponent($container = new EntityContainer($entity), $containerName);
-			call_user_func($this->containerFactory, $container);
+			$related = new $className();
 		}
 
-		foreach ($identifierValues as $field => $value) {
-			$container->addHidden($field)->setDefaultValue($value);
-		}
-
-		return $container;
+		return $related;
 	}
 
 
 
 	/**
-	 * @return array|NULL
+	 * @param \Nette\Forms\Container|\Kdyby\Doctrine\Forms\EntityContainer $container
+	 * @param bool $cleanUpGroups
 	 */
-	private function getHttpData()
+	public function remove(Nette\Forms\Container $container, $cleanUpGroups = FALSE)
 	{
-		$httpRequest = $this->getHttpRequest();
-
-		if ($httpRequest->isPost()) {
-			$post = (array)$httpRequest->getPost();
-
-			$chain = array();
-			$parent = $this;
-
-			while (!$parent instanceof Nette\Forms\Form) {
-				$chain[] = $parent->getName();
-				$parent = $parent->getParent();
-			}
-			;
-
-			while ($chain) {
-				$post = &$post[array_pop($chain)];
-			}
-
-			return $post;
+		if (!$container instanceof EntityContainer) {
+			throw new \Nette\InvalidArgumentException('Given container is not instance of Kdyby\Doctrine\Forms\EntityContainer, instance of ' . get_class($container) . ' given.');
 		}
 
-		return NULL;
-	}
-
-
-
-	/**
-	 * @return Nette\Http\Request
-	 */
-	private function getHttpRequest()
-	{
-		return $this->getForm()->getPresenter()->context->httpRequest;
+		$entity = $container->getEntity();
+		parent::remove($container, $cleanUpGroups);
+		$this->getMapper()->remove($entity);
 	}
 
 }

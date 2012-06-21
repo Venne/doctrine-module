@@ -17,13 +17,22 @@ use Doctrine\ORM\EntityManager;
 use AssetsModule\Managers\AssetManager;
 
 /**
- * @author	 Josef Kříž
+ * @author     Josef Kříž
  */
-class Form extends \FormsModule\Form
+class Form extends \FormsModule\Form implements \DoctrineModule\Forms\Containers\IObjectContainer
 {
 
 
-	/** @var array of function(Form $form, $entity); Occurs when the form is submitted, valid and entity is saved */
+	/**
+	 * Occurs when the entity values are being mapped to form
+	 * @var array of function(array $values, object $entity);
+	 */
+	public $onLoad = array();
+
+	/**
+	 *  Occurs when the form values are being mapped to entity
+	 * @var array of function($values, Nette\Forms\Container $container);
+	 */
 	public $onSave = array();
 
 	/** @var string key of application stored request */
@@ -37,7 +46,6 @@ class Form extends \FormsModule\Form
 
 	/** @var \Doctrine\ORM\EntityManager */
 	protected $entityManager;
-
 
 
 	/**
@@ -55,16 +63,14 @@ class Form extends \FormsModule\Form
 	}
 
 
-
 	/**
 	 * @param object $entity
 	 */
 	public function setEntity($entity)
 	{
 		$this->entity = $entity;
-		$this->getMapper()->assing($entity, $this);
+		$this->getMapper()->assign($entity, $this);
 	}
-
 
 
 	/**
@@ -76,7 +82,6 @@ class Form extends \FormsModule\Form
 	}
 
 
-
 	/**
 	 * @return object
 	 */
@@ -84,16 +89,14 @@ class Form extends \FormsModule\Form
 	{
 		return $this->entity;
 	}
-	
-	
+
+
 	public function getEntityManager()
 	{
 		return $this->entityManager;
 	}
 
 
-
-	
 	/**
 	 * @param Nette\ComponentModel\Container $obj
 	 */
@@ -111,26 +114,20 @@ class Form extends \FormsModule\Form
 	}
 
 
+	public function addOne($name)
+	{
+		$entity = $this->getMapper()->getRelated($this, $name);
+		return $this[$name] = new \DoctrineModule\Forms\Containers\EntityContainer($entity);
+	}
+
+
+	public function addMany($name, $containerFactory, $entityFactory = NULL)
+	{
+		$collection = $this->getMapper()->getCollection($this->getEntity(), $name);
+		return $this[$name] = new \DoctrineModule\Forms\Containers\CollectionContainer($collection, $containerFactory);
+	}
+
 }
-
-\Nette\Forms\Container::extensionMethod("addOneToManyContainer", function(\Nette\Forms\Container $container, $name, $containerFactory, $entityFactory = NULL)
-{
-	$container[$name] = new Containers\CollectionContainer($container->getEntity(), $containerFactory, $entityFactory);
-	return $container[$name];
-});
-
-\Nette\Forms\Container::extensionMethod("addManyToOneContainer", function(\Nette\Forms\Container $container, $name)
-{
-	$entity = $container->getMapper()->getAssociation($container->getEntity(), $name);
-	return $container[$name] = new Containers\Doctrine\EntityContainer($entity);
-});
-
-\Nette\Forms\Container::extensionMethod("addOneToOneContainer", function(\Nette\Forms\Container $container, $name)
-{
-	$entity = $container->getMapper()->getAssociation($container->getEntity(), $name);
-	return $container[$name] = new Containers\Doctrine\EntityContainer($entity);
-});
-
 
 \Nette\Forms\Container::extensionMethod("addManyToOne", function(\Nette\Forms\Container $container, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
 {
