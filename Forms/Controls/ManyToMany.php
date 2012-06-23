@@ -123,6 +123,10 @@ class ManyToMany extends ManyToOne
 		$data = array();
 		if ($values instanceof \Traversable) {
 			foreach ($values as $value) {
+				if(!isset($value->id)){
+					continue;
+				}
+
 				$data[] = $value->id;
 			}
 		}
