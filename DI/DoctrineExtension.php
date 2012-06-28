@@ -78,7 +78,7 @@ class DoctrineExtension extends CompilerExtension
 	public function loadConfiguration()
 	{
 		$container = $this->getContainerBuilder();
-		$config = $this->getConfig();
+		$config = $this->getConfig($this->defaults);
 
 
 		// Cache
@@ -96,10 +96,10 @@ class DoctrineExtension extends CompilerExtension
 			->setShared(false)
 			->setAutowired(false);
 
-		if ($config["debugger"] == "development") {
-			$container->getDefinition("entityManagerConfig")
-				->addSetup("setSQLLogger", "@doctrinePanel");
-		}
+		//if ($config["debugger"] == "development") {
+		//	$container->getDefinition("entityManagerConfig")
+		//		->addSetup("setSQLLogger", "@doctrinePanel");
+		//}
 
 		if ($container->parameters["database"]["driver"] == "pdo_mysql" && $container->parameters["database"]["charset"]) {
 			$container->addDefinition($this->prefix("mysqlListener"))
