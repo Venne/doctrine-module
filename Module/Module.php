@@ -41,15 +41,17 @@ abstract class Module extends \Venne\Module\Module
 		$driver->addPaths(array($this->getPath()));
 
 		// Create db schema
-		$classes = array();
-		$entities = $container->robotLoader->getIndexedClassesBySubclass("\Nette\Object", ucfirst($this->getName()) . "Module\\");
-		foreach ($entities as $entity => $file) {
-			$ref = \Nette\Reflection\ClassType::from($entity);
-			if ($ref->hasAnnotation("Entity")) {
-				$classes[] = $em->getClassMetadata($entity);
+		if($container->createCheckConnection()){
+			$classes = array();
+			$entities = $container->robotLoader->getIndexedClassesBySubclass("\Nette\Object", ucfirst($this->getName()) . "Module\\");
+			foreach ($entities as $entity => $file) {
+				$ref = \Nette\Reflection\ClassType::from($entity);
+				if ($ref->hasAnnotation("Entity")) {
+					$classes[] = $em->getClassMetadata($entity);
+				}
 			}
+			$tool->createSchema($classes);
 		}
-		$tool->createSchema($classes);
 
 		if (function_exists("apc_fetch")) {
 			\apc_clear_cache();
