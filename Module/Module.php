@@ -29,6 +29,8 @@ abstract class Module extends \Venne\Module\Module
 	 */
 	public function install(Container $container)
 	{
+		parent::install($container);
+
 		/** @var $em \Doctrine\ORM\EntityManager */
 		$em = $container->entityManager;
 		$tool = new \Doctrine\ORM\Tools\SchemaTool($em);

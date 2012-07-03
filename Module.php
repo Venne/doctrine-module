@@ -34,37 +34,36 @@ class Module extends \Venne\Module\Module
 		require_once __DIR__ . "/Mapping/DiscriminatorEntry.php";
 	}
 
-	public function install(Container $container)
-	{
-		parent::install($container);
-
-		// Add parameters to config.neon
-		$adapter = new \Nette\Config\Adapters\NeonAdapter();
-		$data = $adapter->load($container->parameters['configDir'] . '/config.neon');
-		$data['parameters']['database'] = array(
-			'driver' => 'pdo_sqlite',
-			'host' => '',
-			'user' => '',
-			'password' => '',
-			'dbname' => '',
-			'charset' => 'utf8',
-			'driverOptions' => array(
-				'1002' => 'SET NAMES utf8',
-			),
-			'proxyDir' => '%appDir%/proxy',
-			'proxyNamespace' => 'proxy',
-			'port' => '',
-			'path' => '',
-			'memory' => '',
-			'collation' => '',
-		);
-		file_put_contents($container->parameters['configDir'] . '/config.neon', $adapter->dump($data));
-	}
-
 
 	public function compile(Compiler $compiler)
 	{
 		$compiler->addExtension($this->getName(), new DI\DoctrineExtension($this->getPath(), $this->getNamespace()));
 	}
+
+	protected function getConfigArray()
+	{
+		return array(
+			'parameters' => array(
+				'database' => array(
+					'driver' => 'pdo_mysql',
+					'host' => '',
+					'user' => '',
+					'password' => '',
+					'dbname' => '',
+					'charset' => 'utf8',
+					'driverOptions' => array(
+						'1002' => 'SET NAMES utf8',
+					),
+					'proxyDir' => '%appDir%/proxy',
+					'proxyNamespace' => 'proxy',
+					'port' => '',
+					'path' => '',
+					'memory' => '',
+					'collation' => '',
+				)
+			)
+		);
+	}
+
 
 }
