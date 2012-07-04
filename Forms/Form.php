@@ -35,6 +35,9 @@ class Form extends \FormsModule\Form implements \DoctrineModule\Forms\Containers
 	 */
 	public $onSave = array();
 
+	/** @var array of functions */
+	public $onAttached = array();
+
 	/** @var string key of application stored request */
 	private $onSaveRestore;
 
@@ -104,6 +107,8 @@ class Form extends \FormsModule\Form implements \DoctrineModule\Forms\Containers
 	{
 		parent::attached($obj);
 
+		$this->onAttached();
+
 		if ($obj instanceof Presenter) {
 			if (!$this->isSubmitted()) {
 				$this->getMapper()->load();
@@ -131,73 +136,64 @@ class Form extends \FormsModule\Form implements \DoctrineModule\Forms\Containers
 
 \Nette\Forms\Container::extensionMethod("addManyToOne", function(\Nette\Forms\Container $container, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
 {
-	$ref = $container->entity->getReflection()->getProperty($name);
+	$container[$name] = $control = new Controls\ManyToOne($label, $size);
 
-	if ($ref->hasAnnotation("Form")) {
-		$ref = $ref->getAnnotation("Form");
+	$fc = function() use ($container, $control, $name, $criteria, $orderBy, $limit, $offset) {
+		$ref = $container->entity->getReflection()->getProperty($name);
+
+		$ref = $ref->hasAnnotation("Form") ? $ref->getAnnotation("Form") : $ref->getAnnotation("ManyToOne");
 		$class = $ref["targetEntity"];
 		if (substr($class, 0, 1) != "\\") {
 			$class = "\\" . $container->entity->getReflection()->getNamespaceName() . "\\" . $class;
 		}
-	} else {
-		$ref = $ref->getAnnotation("ManyToOne");
-		$class = $ref["targetEntity"];
-		if (substr($class, 0, 1) != "\\") {
-			$class = "\\" . $container->entity->getReflection()->getNamespaceName() . "\\" . $class;
-		}
-	}
 
-	$items = $container->form->entityManager->getRepository($class)->findBy($criteria, $orderBy, $limit, $offset);
+		$items = $container->form->entityManager->getRepository($class)->findBy($criteria, $orderBy, $limit, $offset);
+		$control->setItems($items);
+		$control->setPrompt("---------");
+	};
 
-	$container[$name] = new Controls\ManyToOne($label, $items, $size);
-	$container[$name]->setPrompt("---------");
+	$container->form->onAttached[] = $fc;
 	return $container[$name];
 });
 
 \Nette\Forms\Container::extensionMethod("addManyToMany", function(\Nette\Forms\Container $container, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
 {
-	$ref = $container->entity->getReflection()->getProperty($name);
+	$container[$name] = $control = new Controls\ManyToMany($label, $items, $size);
 
-	if ($ref->hasAnnotation("Form")) {
-		$ref = $ref->getAnnotation("Form");
+	$fc = function() use ($container, $control, $name, $criteria, $orderBy, $limit, $offset) {
+		$ref = $container->entity->getReflection()->getProperty($name);
+
+		$ref = $ref->hasAnnotation("Form") ? $ref->getAnnotation("Form") : $ref->getAnnotation("ManyToMany");
 		$class = $ref["targetEntity"];
 		if (substr($class, 0, 1) != "\\") {
 			$class = "\\" . $container->entity->getReflection()->getNamespaceName() . "\\" . $class;
 		}
-	} else {
-		$ref = $ref->getAnnotation("ManyToMany");
-		$class = $ref["targetEntity"];
-		if (substr($class, 0, 1) != "\\") {
-			$class = "\\" . $container->entity->getReflection()->getNamespaceName() . "\\" . $class;
-		}
-	}
 
-	$items = $container->form->entityManager->getRepository($class)->findBy($criteria, $orderBy, $limit, $offset);
+		$items = $container->form->entityManager->getRepository($class)->findBy($criteria, $orderBy, $limit, $offset);
+		$control->setItems($items);
+	};
 
-	$container[$name] = new Controls\ManyToMany($label, $items, $size);
+	$container->form->onAttached[] = $fc;
 	return $container[$name];
 });
 
 \Nette\Forms\Container::extensionMethod("addOneToMany", function(\Nette\Forms\Container $container, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
 {
-	$ref = $container->entity->getReflection()->getProperty($name);
+	$container[$name] = $control = new Controls\ManyToMany($label, $items, $size);
 
-	if ($ref->hasAnnotation("Form")) {
-		$ref = $ref->getAnnotation("Form");
+	$fc =  function() use ($container, $control, $name, $criteria, $orderBy, $limit, $offset) {
+		$ref = $container->entity->getReflection()->getProperty($name);
+
+		$ref = $ref->hasAnnotation("Form") ? $ref->getAnnotation("Form") : $ref->getAnnotation("OneToMany");
 		$class = $ref["targetEntity"];
 		if (substr($class, 0, 1) != "\\") {
 			$class = "\\" . $container->entity->getReflection()->getNamespaceName() . "\\" . $class;
 		}
-	} else {
-		$ref = $ref->getAnnotation("OneToMany");
-		$class = $ref["targetEntity"];
-		if (substr($class, 0, 1) != "\\") {
-			$class = "\\" . $container->entity->getReflection()->getNamespaceName() . "\\" . $class;
-		}
-	}
 
-	$items = $container->form->entityManager->getRepository($class)->findBy($criteria, $orderBy, $limit, $offset);
+		$items = $container->form->entityManager->getRepository($class)->findBy($criteria, $orderBy, $limit, $offset);
+		$control->setItems($items);
+	};
 
-	$container[$name] = new Controls\ManyToMany($label, $items, $size);
+	$container->form->onAttached[] = $fc;
 	return $container[$name];
 });
