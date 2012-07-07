@@ -93,7 +93,7 @@ class ManyToOne extends BaseControl
 	{
 		$form = $this->getForm(FALSE);
 		if (!$form || !$form->isAnchored() || !$form->isSubmitted()) {
-			$this->setValue($value->id);
+			$this->setValue($value);
 		}
 		return $this;
 	}
