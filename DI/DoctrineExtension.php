@@ -22,6 +22,8 @@ use Nette\Utils\Strings;
 class DoctrineExtension extends CompilerExtension
 {
 
+	/** @var bool */
+	protected static $isConnected;
 
 	const CONNECTIONS_PREFIX = 'connections',
 		ENTITY_MANAGERS_PREFIX = 'entityManagers',
@@ -253,7 +255,7 @@ class DoctrineExtension extends CompilerExtension
 			->addTag('commandHelper', 'em')
 			->setAutowired(FALSE);
 		$container->addDefinition($this->prefix('connectionHelper'))
-			->setClass('Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper', array('@'.$this->connectionsPrefix('default')))
+			->setClass('Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper', array('@' . $this->connectionsPrefix('default')))
 			->addTag('commandHelper', 'db')
 			->setAutowired(FALSE);
 		$container->addDefinition($this->prefix('dialogHelper'))
@@ -366,36 +368,31 @@ class DoctrineExtension extends CompilerExtension
 	}
 
 
-	public static function checkConnectionErrorHandler()
-	{
-
-	}
-
-
 	public static function checkConnection(\Nette\DI\Container $context, \Doctrine\ORM\EntityManager $entityManager)
 	{
-		if (!$context->parameters["database"]["driver"]) {
-			return false;
-		}
+		if (self::$isConnected === NULL) {
+			$ret = true;
+			$connection = $entityManager->getConnection();
+			$old = set_error_handler(function() use (& $ret)
+			{
+				$ret = false;
+			});
 
-		$connection = $entityManager->getConnection();
-		if ($connection->isConnected()) {
-			return true;
-		}
-
-		$old = set_error_handler("DoctrineModule\DI\DoctrineExtension::checkConnectionErrorHandler");
-		try {
-			$connection->connect();
-			if ($connection->isConnected()) {
-				set_error_handler($old);
-				return true;
+			try {
+				$c = $connection->connect();
+				if (!is_bool($c)) {
+					$ret = false;
+				}
+				$connection->getSchemaManager()->listTables();
+			} catch (\PDOException $ex) {
+				$ret = false;
 			}
+
 			set_error_handler($old);
-			return false;
-		} catch (\PDOException $ex) {
-			set_error_handler($old);
-			return false;
+			self::$isConnected = $ret;
 		}
+
+		return self::$isConnected;
 	}
 
 
