@@ -156,6 +156,28 @@ class Form extends \FormsModule\Form implements \DoctrineModule\Forms\Containers
 	return $container[$name];
 });
 
+\Nette\Forms\Container::extensionMethod("addOneToOne", function(\Nette\Forms\Container $container, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
+{
+	$container[$name] = $control = new Controls\ManyToOne($label, $size);
+
+	$fc = function() use ($container, $control, $name, $criteria, $orderBy, $limit, $offset) {
+		$ref = $container->entity->getReflection()->getProperty($name);
+
+		$ref = $ref->hasAnnotation("Form") ? $ref->getAnnotation("Form") : $ref->getAnnotation("OneToOne");
+		$class = $ref["targetEntity"];
+		if (substr($class, 0, 1) != "\\") {
+			$class = "\\" . $container->entity->getReflection()->getNamespaceName() . "\\" . $class;
+		}
+
+		$items = $container->form->entityManager->getRepository($class)->findBy($criteria, $orderBy, $limit, $offset);
+		$control->setItems($items);
+		$control->setPrompt("---------");
+	};
+
+	$container->form->onAttached[] = $fc;
+	return $container[$name];
+});
+
 \Nette\Forms\Container::extensionMethod("addManyToMany", function(\Nette\Forms\Container $container, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
 {
 	$container[$name] = $control = new Controls\ManyToMany($label, $items, $size);
