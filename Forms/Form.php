@@ -119,6 +119,10 @@ class Form extends \FormsModule\Form implements \DoctrineModule\Forms\Containers
 	}
 
 
+	/**
+	 * @param $name
+	 * @return \DoctrineModule\Forms\Containers\EntityContainer
+	 */
 	public function addOne($name)
 	{
 		$entity = $this->getMapper()->getRelated($this, $name);
@@ -126,6 +130,12 @@ class Form extends \FormsModule\Form implements \DoctrineModule\Forms\Containers
 	}
 
 
+	/**
+	 * @param $name
+	 * @param $containerFactory
+	 * @param null $entityFactory
+	 * @return \DoctrineModule\Forms\Containers\CollectionContainer
+	 */
 	public function addMany($name, $containerFactory, $entityFactory = NULL)
 	{
 		$collection = $this->getMapper()->getCollection($this->getEntity(), $name);
