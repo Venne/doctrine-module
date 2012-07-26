@@ -257,6 +257,11 @@ class EntityFormMapper extends Nette\Object
 					}
 
 				} elseif ($class->hasAssociation($field)) {
+					if (Objects::hasProperty($entity, $field)) {
+						Objects::setProperty($entity, $field, $value);
+						continue;
+					}
+
 					if ($this->isItemsControl($container[$name])) {
 						$value = $this->resolveItemsControlValue($value, $entity, $field);
 					}
