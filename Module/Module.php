@@ -25,7 +25,7 @@ abstract class Module extends \Venne\Module\Module
 
 
 	/**
-	 * @param \Nette\DI\Container|SystemContainer $container
+	 * @param \Nette\DI\Container|\SystemContainer $container
 	 */
 	public function install(Container $container)
 	{
@@ -41,15 +41,12 @@ abstract class Module extends \Venne\Module\Module
 		$driver->addPaths(array($this->getPath()));
 
 		// Create db schema
-		if($container->createCheckConnection()){
+		if ($container->createCheckConnection()) {
 			$classes = array();
-			$entities = $container->robotLoader->getIndexedClassesBySubclass("\Nette\Object", ucfirst($this->getName()) . "Module\\");
-			foreach ($entities as $entity => $file) {
-				$ref = \Nette\Reflection\ClassType::from($entity);
-				if ($ref->hasAnnotation("Entity")) {
-					$classes[] = $em->getClassMetadata($entity);
-				}
+			foreach ($em->getMetadataFactory()->getAllMetadata() as $item) {
+				$classes[] = $em->getClassMetadata($item->name);
 			}
+
 			$tool->createSchema($classes);
 		}
 
@@ -73,12 +70,8 @@ abstract class Module extends \Venne\Module\Module
 
 		// load
 		$classes = array();
-		$entities = $container->robotLoader->getIndexedClassesBySubclass("\DoctrineModule\ORM\BaseEntity", ucfirst($this->getName()) . "Module\\");
-		foreach ($entities as $entity => $file) {
-			$ref = \Nette\Reflection\ClassType::from($entity);
-			if ($ref->hasAnnotation("Entity")) {
-				$classes[] = $em->getClassMetadata($entity);
-			}
+		foreach ($em->getMetadataFactory()->getAllMetadata() as $item) {
+			$classes[] = $em->getClassMetadata($item->name);
 		}
 
 		// delete entities
@@ -105,6 +98,5 @@ abstract class Module extends \Venne\Module\Module
 			\apc_clear_cache('opcode');
 		}
 	}
-
 }
 
