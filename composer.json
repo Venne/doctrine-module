@@ -13,6 +13,10 @@
 		"venne/forms-module" : "2.0.x-dev",
 		"doctrine/orm" : "2.2.2"
 	},
+	"autoload": {
+		"psr-0": { "DoctrineModule": "" }
+	},
+	"target-dir": "DoctrineModule",
 	"extra": {
 		"branch-alias": {
 			"dev-master": "2.0.x-dev"
