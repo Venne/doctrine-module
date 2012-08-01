@@ -2,6 +2,7 @@
 	"name": "venne/doctrine-module",
 	"description": "Doctrine module with macros and components",
 	"keywords": ["cms", "nette", "venne", "module"],
+	"type": "venne-module",
 	"authors": [
 		{
 			"name": "Josef Kříž",
