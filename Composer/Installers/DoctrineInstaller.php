@@ -73,7 +73,16 @@ class DoctrineInstaller extends BaseInstaller
 			}
 		}
 
-		$tool->createSchema($classes);
+		try {
+			$em->getConnection()->beginTransaction();
+			$tool->createSchema($classes);
+			$em->getConnection()->commit();
+		} catch (Exception $e) {
+			$em->getConnection()->rollback();
+			$em->close();
+			throw $e;
+		}
+
 		$this->cleanCache();
 	}
 
@@ -125,7 +134,16 @@ class DoctrineInstaller extends BaseInstaller
 			}
 		}
 
-		$tool->dropSchema($classes);
+		try {
+			$em->getConnection()->beginTransaction();
+			$tool->dropSchema($classes);
+			$em->getConnection()->commit();
+		} catch (Exception $e) {
+			$em->getConnection()->rollback();
+			$em->close();
+			throw $e;
+		}
+
 		$this->cleanCache();
 	}
 
