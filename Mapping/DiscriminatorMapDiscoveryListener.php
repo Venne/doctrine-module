@@ -110,3 +110,6 @@ class DiscriminatorMapDiscoveryListener extends Nette\Object implements Doctrine
 	}
 
 }
+
+
+include_once __DIR__ . '/DiscriminatorEntry.php';

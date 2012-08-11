@@ -82,7 +82,6 @@ class DoctrineExtension extends CompilerExtension
 		$container = $this->getContainerBuilder();
 		$config = $this->getConfig($this->defaults);
 
-
 		// Cache
 		$cache = $container->addDefinition($this->prefix("cache"))
 			->setInternal(true);
@@ -187,15 +186,13 @@ class DoctrineExtension extends CompilerExtension
 			->setClass("Doctrine\Common\Annotations\CachedReader", array($this->configurationsPrefix('@' . $name . 'AnnotationReader'), "@doctrine.cache"))
 			->setInternal(true);
 
-		$paths = array($container->parameters["appDir"]);
-		foreach ($container->parameters["modules"] as $module => $item) {
-			$class = "\\{$module}Module\\Module";
-			$module = new $class;
-			$paths[] = $module->getPath();
+		$paths = array();
+		foreach (\Nette\Utils\Finder::findDirectories('Entities')->from($container->parameters['libsDir'] . '/venne') as $file) {
+			$paths[] = $file->getPath() . '/Entities';
 		}
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationDriver'))
 			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), $paths))
-			->addSetup('setFileExtension', 'Entity.php')
+			->addSetup('setFileExtension', '.php')
 			->setInternal(true);
 
 		$container->addDefinition($this->configurationsPrefix($name))
