@@ -74,6 +74,7 @@ class DoctrineInstaller extends BaseInstaller
 		}
 
 		$tool->createSchema($classes);
+		$this->cleanCache();
 	}
 
 
@@ -125,5 +126,16 @@ class DoctrineInstaller extends BaseInstaller
 		}
 
 		$tool->dropSchema($classes);
+		$this->cleanCache();
+	}
+
+
+	protected function cleanCache()
+	{
+		if (function_exists("apc_fetch")) {
+			\apc_clear_cache();
+			\apc_clear_cache('user');
+			\apc_clear_cache('opcode');
+		}
 	}
 }
