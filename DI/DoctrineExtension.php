@@ -187,8 +187,8 @@ class DoctrineExtension extends CompilerExtension
 			->setInternal(true);
 
 		$paths = array();
-		foreach (\Nette\Utils\Finder::findDirectories('Entities')->from($container->parameters['libsDir'] . '/venne') as $file) {
-			$paths[] = $file->getPath() . '/Entities';
+		foreach (\Nette\Utils\Finder::findFiles('Entities/*.php')->from($container->parameters['libsDir'] . '/venne') as $file) {
+			$paths[] = $file->getPath();
 		}
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationDriver'))
 			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), $paths))
