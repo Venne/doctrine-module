@@ -380,7 +380,7 @@ class DoctrineExtension extends CompilerExtension
 				if (!is_bool($c)) {
 					$ret = false;
 				}
-				$connection->getSchemaManager()->listTables();
+				$connection->getSchemaManager()->tablesExist('user'); // try connect with some sql
 			} catch (\PDOException $ex) {
 				$ret = false;
 			}
