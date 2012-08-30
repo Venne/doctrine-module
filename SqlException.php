@@ -9,40 +9,40 @@
  * the file license.txt that was distributed with this source code.
  */
 
-namespace DoctrineModule\ORM;
+namespace DoctrineModule;
 
-use Doctrine;
-use Venne;
-use Nette;
+use Doctrine\ORM\Query;
+use PDOException;
 
 /**
  * @author Filip Procházka
  */
-class QueryException extends \Exception
+class SqlException extends \Exception
 {
 
 
-	/** @var Doctrine\ORM\Query */
+	/** @var Query */
 	private $query;
 
 
 
 	/**
+	 * @param PDOException $previous
+	 * @param integer $code
+	 * @param Query $query
 	 * @param string $message
-	 * @param Doctrine\ORM\Query $query
-	 * @param \Exception $previous
 	 */
-	public function __construct($message = "", Doctrine\ORM\Query $query, \Exception $previous = NULL)
+	public function __construct(PDOException $previous, $code = NULL, Query $query = NULL, $message = "")
 	{
-		parent::__construct($message, NULL, $previous);
-
+		parent::__construct($previous->getMessage(), NULL, $previous);
+		$this->code = $previous->getCode();
 		$this->query = $query;
 	}
 
 
 
 	/**
-	 * @return Doctrine\ORM\Query
+	 * @return Query|NULL
 	 */
 	public function getQuery()
 	{

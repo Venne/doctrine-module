@@ -9,12 +9,13 @@
  * the file license.txt that was distributed with this source code.
  */
 
-namespace DoctrineModule\ORM;
+namespace DoctrineModule\Repositories;
 
 use Doctrine;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\NonUniqueResultException;
+use DoctrineModule\QueryException;
 use Venne;
 use DoctrineModule\IQueryObject;
 use DoctrineModule\Mapping\EntityValuesMapper;
@@ -25,30 +26,15 @@ use Nette\ObjectMixin;
  * @author Filip Procházka
  * @author Josef Kříž <pepakriz@gmail.com>
  * @author Patrik Votoček
- *
- * @method Mapping\ClassMetadata getClassMetadata() getClassMetadata()
  */
 class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineModule\IDao, \DoctrineModule\IQueryable, \DoctrineModule\IObjectFactory
 {
 
 
-	/** @var EntityValuesMapper */
-	private $entityMapper;
-
-
-
-	public function __construct($em, \Doctrine\ORM\Mapping\ClassMetadata $class)
-	{
-		parent::__construct($em, $class);
-		$this->entityMapper = new EntityValuesMapper($em, new \DoctrineModule\Mapping\TypeMapper());
-	}
-
-
-
 	/**
 	 * @param array $values
 	 */
-	public function createNew($arguments = array(), $values = array())
+	public function createNew($arguments = array())
 	{
 		$class = $this->getEntityName();
 		if (!$arguments) {
@@ -57,58 +43,8 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 			$reflection = new Nette\Reflection\ClassType($class);
 			$entity = $reflection->newInstanceArgs($arguments);
 		}
-
-		if ($values) {
-			if (!$this->entityMapper) {
-				throw new Nette\InvalidArgumentException("EntityMapper service was not injected, therefore DAO cannot set values.");
-			} else {
-				$this->entityMapper->load($entity, $values);
-			}
-		}
 		return $entity;
 	}
-
-
-
-	/**
-	 * @param EntityValuesMapper $mapper
-	 */
-	public function setEntityMapper(EntityValuesMapper $mapper)
-	{
-		$this->entityMapper = $mapper;
-	}
-
-
-
-	public function update($entity, $values = array(), $withoutFlush = self::FLUSH)
-	{
-		if ($entity instanceof Collection) {
-			return $this->update($entity->toArray(), $values, $withoutFlush);
-		}
-
-		if (is_array($entity)) {
-			$repository = $this;
-			$result = array_map(function ($entity) use ($repository)
-			{
-				return $repository->update($entity, $values, BaseRepository::NO_FLUSH);
-			}, $entity);
-
-			return $result;
-		}
-
-		if ($values) {
-			if (!$this->entityMapper) {
-				throw new Nette\InvalidArgumentException("EntityMapper service was not injected, therefore DAO cannot set values.");
-			} else {
-				$this->entityMapper->load($entity, $values);
-			}
-		}
-
-		$this->flush($withoutFlush);
-
-		return $entity;
-	}
-
 
 
 	/**
@@ -145,7 +81,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	}
 
 
-
 	/**
 	 * @param object|array|Collection $entity
 	 * @param boolean $withoutFlush
@@ -176,7 +111,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	}
 
 
-
 	/**
 	 * @param boolean $withoutFlush
 	 */
@@ -190,7 +124,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 			}
 		}
 	}
-
 
 
 	/**
@@ -209,7 +142,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	}
 
 
-
 	/**
 	 * @param string $alias
 	 * @return Doctrine\ORM\Query
@@ -218,7 +150,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	{
 		return $this->getEntityManager()->createQuery($dql);
 	}
-
 
 
 	/**
@@ -242,7 +173,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	}
 
 
-
 	/**
 	 * @param IQueryObject $queryObject
 	 * @return integer
@@ -257,7 +187,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	}
 
 
-
 	/**
 	 * @param IQueryObject $queryObject
 	 * @return array
@@ -270,7 +199,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 			return $this->handleQueryExceptions($e, $queryObject);
 		}
 	}
-
 
 
 	/**
@@ -289,7 +217,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 			return $this->handleQueryExceptions($e, $queryObject);
 		}
 	}
-
 
 
 	/**
@@ -314,7 +241,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 
 		return $arr;
 	}
-
 
 
 	/**
@@ -343,7 +269,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	}
 
 
-
 	/**
 	 * @param \Exception $e
 	 * @throws \Exception
@@ -357,7 +282,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 			throw $e;
 		}
 	}
-
 
 
 	/*	 * ******************* Nette\Object behaviour ****************d*g* */
@@ -375,12 +299,10 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	}
 
 
-
 	public function &__get($name)
 	{
 		return ObjectMixin::get($this, $name);
 	}
-
 
 
 	public function __set($name, $value)
@@ -389,17 +311,14 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	}
 
 
-
 	public function __isset($name)
 	{
 		return ObjectMixin::has($this, $name);
 	}
 
 
-
 	public function __unset($name)
 	{
 		ObjectMixin::remove($this, $name);
 	}
-
 }

@@ -63,7 +63,7 @@ class ManyToOne extends BaseControl
 
 	public function setValue($value)
 	{
-		if ($value instanceof \DoctrineModule\ORM\BaseEntity) {
+		if ($value instanceof \DoctrineModule\Entities\IdentifiedEntity) {
 			return parent::setValue($value->id);
 		}
 	}
@@ -103,7 +103,7 @@ class ManyToOne extends BaseControl
 	public function getValue()
 	{
 		foreach ($this->items as $item) {
-			if ($item instanceof \DoctrineModule\ORM\IEntity) {
+			if ($item instanceof \DoctrineModule\Entities\IEntity) {
 				if ($item->id == $this->value) {
 					return $item;
 				}
@@ -146,7 +146,7 @@ class ManyToOne extends BaseControl
 		foreach ($this->items as $key => $value) {
 			if (!is_array($value)) {
 
-				if ($value instanceof \DoctrineModule\ORM\IEntity) {
+				if ($value instanceof \DoctrineModule\Entities\IEntity) {
 					$value = array($value->id => $value);
 				} else {
 					$value = array($value => $value);
@@ -162,7 +162,7 @@ class ManyToOne extends BaseControl
 				//	continue;
 				//}
 
-				if ($value2 instanceof \DoctrineModule\ORM\IEntity) {
+				if ($value2 instanceof \DoctrineModule\Entities\IEntity) {
 					$key2 = $value2->id;
 				} else {
 					$key2 = $value2;

@@ -9,7 +9,7 @@
  * the file license.txt that was distributed with this source code.
  */
 
-namespace DoctrineModule\ORM;
+namespace DoctrineModule\Entities;
 
 use Nette\Object;
 
@@ -19,40 +19,6 @@ use Nette\Object;
 class BaseEntity extends Object implements IEntity
 {
 
-
-	/**
-	 * @Id
-	 * @Column(type="integer")
-	 * @GeneratedValue
-	 */
-	protected $id;
-
-
-
-	/**
-	 * @return integer
-	 */
-	public function getId()
-	{
-		return $this->id;
-	}
-
-
-
-	/**
-	 * @param integer $id
-	 */
-	public function setId($id)
-	{
-		$this->id = $id;
-	}
-
-
-
-	public function __construct()
-	{
-
-	}
 
 }
 

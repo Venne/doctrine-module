@@ -561,7 +561,7 @@ class EntityMapper extends Nette\Object implements \Venne\Forms\IMapper
 				throw new \Nette\InvalidArgumentException('Entity "' . $targetClass . '" has no property "' . $items . '".');
 			}
 
-			$items = function (\DoctrineModule\ORM\BaseRepository $dao) use ($items, $key)
+			$items = function (\DoctrineModule\Repositories\BaseRepository $dao) use ($items, $key)
 			{
 				return $dao->findPairs($items, $key);
 			};

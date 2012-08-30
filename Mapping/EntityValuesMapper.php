@@ -70,7 +70,7 @@ class EntityValuesMapper extends EntityMetadataMapper
 
 
 	/**
-	 * @param \DoctrineModule\ORM\BaseEntity $entity
+	 * @param \DoctrineModule\Entities\IdentifiedEntity $entity
 	 * @param string $property
 	 * @return bool
 	 */

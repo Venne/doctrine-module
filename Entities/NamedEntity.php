@@ -9,22 +9,16 @@
  * the file license.txt that was distributed with this source code.
  */
 
-namespace DoctrineModule\ORM;
+namespace DoctrineModule\Entities;
 
 use Nette\Object;
 
 /**
  * @author Josef Kříž <pepakriz@gmail.com>
  */
-class NamedEntity extends BaseEntity
+class NamedEntity extends IdentifiedEntity
 {
 
-
-	/**
-	 * @Id @Column(type="integer")
-	 * @GeneratedValue
-	 */
-	protected $id;
 
 	/**
 	 * @Column(type="string")
@@ -32,45 +26,21 @@ class NamedEntity extends BaseEntity
 	protected $name;
 
 
-
 	/**
-	 * @return integer
+	 * @param $name
 	 */
-	public function getId()
-	{
-		return $this->id;
-	}
-
-
-
-	/**
-	 * @param integer $id
-	 */
-	public function setId($id)
-	{
-		$this->id = $id;
-	}
-
-
-
-	public function getName()
-	{
-		return $this->name;
-	}
-
-
-
 	public function setName($name)
 	{
 		$this->name = $name;
 	}
 
 
-
-	public function __toString()
+	/**
+	 * @return string
+	 */
+	public function getName()
 	{
 		return $this->name;
 	}
-
 }
 

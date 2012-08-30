@@ -9,7 +9,7 @@
  * the file license.txt that was distributed with this source code.
  */
 
-namespace DoctrineModule\ORM;
+namespace DoctrineModule\Entities;
 
 use Venne;
 

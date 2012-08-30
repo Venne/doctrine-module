@@ -411,7 +411,7 @@ class DoctrineExtension extends CompilerExtension
 			$definition = $container->getDefinition($name);
 			$refl = \Nette\Reflection\ClassType::from($definition->class);
 
-			if (!$refl->isSubclassOf("\\DoctrineModule\\ORM\\IEntity") && $refl->hasAnnotation("Entity")) {
+			if (!$refl->isSubclassOf("\\DoctrineModule\\Entities\\IEntity") && $refl->hasAnnotation("Entity")) {
 				throw new \Nette\DI\ServiceCreationException("Class {$definition->class} is not instance of entity");
 			}
 
