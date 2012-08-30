@@ -9,7 +9,7 @@
  * the file license.txt that was distributed with this source code.
  */
 
-namespace DoctrineModule\Forms\Mapping;
+namespace DoctrineModule\Forms\Mappers;
 
 use Nette;
 use Nette\ComponentModel\IComponent;
@@ -21,16 +21,16 @@ use Venne\Tools\Objects;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine;
 use Doctrine\Common\Collections\Collection;
-use DoctrineModule\Forms\Containers\IObjectContainer;
+use Venne\Forms\IObjectContainer;
 use SplObjectStorage;
 use DoctrineModule\Forms\Containers\CollectionContainer;
-
+use Venne\Forms\Form;
 
 
 /**
  * @author Filip Procházka <filip.prochazka@kdyby.org>
  */
-class EntityFormMapper extends Nette\Object
+class EntityMapper extends Nette\Object implements \Venne\Forms\IMapper
 {
 
 	/** @var array */
@@ -59,7 +59,6 @@ class EntityFormMapper extends Nette\Object
 	private $meta = array();
 
 
-
 	/**
 	 * @param \Kdyby\Doctrine\Registry $doctrine
 	 */
@@ -71,9 +70,18 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
+	public function getEntityManager()
+	{
+		return $this->doctrine;
+	}
+
 
 	/************************ assigning ************************/
 
+
+	public function setForm(Form $form)
+	{
+	}
 
 
 	/**
@@ -86,7 +94,6 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/**
 	 * @param \Doctrine\Common\Collections\Collection $collection
 	 * @param \Nette\ComponentModel\IComponent $component
@@ -97,9 +104,7 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/************************ reading assignment ************************/
-
 
 
 	/**
@@ -115,7 +120,6 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/**
 	 * @param object $object
 	 *
@@ -125,7 +129,6 @@ class EntityFormMapper extends Nette\Object
 	{
 		if ($this->entities->contains($object)) {
 			return $this->entities->offsetGet($object);
-
 		} elseif ($this->collections->contains($object)) {
 			return $this->collections->offsetGet($object);
 		}
@@ -134,9 +137,7 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/************************ fix types ************************/
-
 
 
 	/**
@@ -148,7 +149,7 @@ class EntityFormMapper extends Nette\Object
 	{
 		switch ($class->getTypeOfField($field)) {
 			case 'integer':
-				$value = (int)$value ?: NULL;
+				$value = (int)$value ? : NULL;
 				break;
 		}
 
@@ -156,9 +157,7 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/************************ load to component ************************/
-
 
 
 	/**
@@ -173,7 +172,6 @@ class EntityFormMapper extends Nette\Object
 			}
 		}
 	}
-
 
 
 	/**
@@ -202,7 +200,6 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/**
 	 */
 	public function load()
@@ -214,21 +211,18 @@ class EntityFormMapper extends Nette\Object
 			$values = new Nette\ArrayHash;
 			foreach ($container->getControls() as $control) {
 				$field = $this->getControlField($control);
-				if(Objects::hasProperty($entity, $field)){
+				if (Objects::hasProperty($entity, $field)) {
 					$value = Objects::getProperty($entity, $field);
 					$values[$field] = $this->sanitizeValue($class, $field, $value);
 				}
 			}
 
-			$container->onLoad($values, $entity);
 			$container->setValues($values);
 		}
 	}
 
 
-
 	/************************ save to entity ************************/
-
 
 
 	/**
@@ -240,7 +234,7 @@ class EntityFormMapper extends Nette\Object
 
 			/** @var \Kdyby\Doctrine\Forms\EntityContainer|\Kdyby\Doctrine\Forms\CollectionContainer $container */
 			$container = $this->getComponent($entity);
-			$container->onSave($values = $container->getValues(), $container);
+			$values = $container->getValues();
 
 			foreach ($values as $name => $value) {
 				if (!$container[$name] instanceof IControl) {
@@ -255,7 +249,6 @@ class EntityFormMapper extends Nette\Object
 					if (!$this->isTargetCollection($entity, $field)) { // todo: wtf?
 						Objects::setProperty($entity, $field, $value);
 					}
-
 				} elseif ($class->hasAssociation($field)) {
 					if (Objects::hasProperty($entity, $field)) {
 						Objects::setProperty($entity, $field, $value);
@@ -273,7 +266,6 @@ class EntityFormMapper extends Nette\Object
 						foreach ($value as $item) {
 							$collection->add($item);
 						}
-
 					} else {
 						$class->setFieldValue($entity, $field, $value);
 					}
@@ -285,7 +277,7 @@ class EntityFormMapper extends Nette\Object
 			$container = $this->getComponent($collection);
 			/** @var \Kdyby\Doctrine\Forms\EntityContainer $parentContainer */
 			$parentContainer = $container->getParent();
-			if (!$parentContainer instanceof IObjectContainer || !$parentEntity = $parentContainer->getEntity()) {
+			if (!$parentContainer instanceof IObjectContainer || !$parentEntity = $parentContainer->getData()) {
 				continue;
 			}
 
@@ -294,7 +286,6 @@ class EntityFormMapper extends Nette\Object
 			}
 		}
 	}
-
 
 
 	/**
@@ -311,14 +302,12 @@ class EntityFormMapper extends Nette\Object
 
 		if (is_array($value)) {
 			return $dao->findBy(array($id => $value));
-
 		} elseif (is_scalar($value)) {
 			return $dao->find($value);
 		}
 
 		return NULL;
 	}
-
 
 
 	/**
@@ -338,10 +327,7 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
-
 	/************************ remove from collection ************************/
-
 
 
 	/**
@@ -356,14 +342,12 @@ class EntityFormMapper extends Nette\Object
 		}
 
 		$this->entities->detach($entity);
-		$dao = $this->doctrine->getDao(get_class($entity));
-		$dao->delete($entity, Dao::NO_FLUSH);
+		$dao = $this->doctrine->getRepository(get_class($entity));
+		$dao->delete($entity, true);
 	}
 
 
-
 	/************************ factory helpers ************************/
-
 
 
 	/**
@@ -372,11 +356,11 @@ class EntityFormMapper extends Nette\Object
 	 *
 	 * @return object
 	 */
-	public function getRelated(IObjectContainer $container, $field)
+	public function getRelated($container, $field)
 	{
-		$entity = $container->getEntity();
+		$entity = $container->getData();
 		if ($this->isTargetCollection($entity, $field)) {
-			throw new Kdyby\InvalidStateException('Requested field ' . get_class($entity) . '::$' . $field . ' is collection association.');
+			throw new \Nette\InvalidStateException('Requested field ' . get_class($entity) . '::$' . $field . ' is collection association.');
 		}
 
 		$related = $this->getMeta($entity)->getFieldValue($entity, $field);
@@ -389,7 +373,6 @@ class EntityFormMapper extends Nette\Object
 		$this->ensureBidirectionalRelation($entity, $related, $field);
 		return $related;
 	}
-
 
 
 	/**
@@ -406,13 +389,11 @@ class EntityFormMapper extends Nette\Object
 			if ($this->isTargetCollection($related, $mappedBy = $relatedMapping['mappedBy'])) {
 				$relatedCollection = $this->getCollection($related, $mappedBy);
 				$relatedCollection->add($entity);
-
 			} else {
 				$this->getMeta($related)->setFieldValue($related, $mappedBy, $entity);
 			}
 		}
 	}
-
 
 
 	/**
@@ -424,7 +405,7 @@ class EntityFormMapper extends Nette\Object
 	public function getCollection($entity, $field)
 	{
 		if (!$this->isTargetCollection($entity, $field)) {
-			throw new Kdyby\InvalidStateException('Requested field ' . get_class($entity) . '::$' . $field . ' is single entity associates.');
+			throw new \Nette\InvalidStateException('Requested field ' . get_class($entity) . '::$' . $field . ' is single entity associates.');
 		}
 
 		$related = $this->getMeta($entity)->getFieldValue($entity, $field);
@@ -437,7 +418,6 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/**
 	 * @param $entity
 	 * @return array
@@ -445,16 +425,14 @@ class EntityFormMapper extends Nette\Object
 	public function getIdentifierValues($entity)
 	{
 		$class = get_class($entity);
-		if(strpos($class, 'Proxies\__CG__\\') === 0){
+		if (strpos($class, 'Proxies\__CG__\\') === 0) {
 			$class = substr($class, 15);
 		}
-
 
 
 		$class = $this->doctrine->getClassMetadata($class);
 		return array_filter($class->getIdentifierValues($entity));
 	}
-
 
 
 	/**
@@ -464,7 +442,7 @@ class EntityFormMapper extends Nette\Object
 	 */
 	public function getCollectionEntry(CollectionContainer $container, $values)
 	{
-		$parentEntity = $container->getParent()->getEntity();
+		$parentEntity = $container->getParent()->getData();
 		if (!$ids = $this->getValuesIds($parentEntity, $values)) {
 			return NULL;
 		}
@@ -472,7 +450,6 @@ class EntityFormMapper extends Nette\Object
 		$entity = $this->doctrine->getRepository(get_class($parentEntity))->find($ids);
 		return $container->getCollection()->contains($entity) ? $entity : NULL;
 	}
-
 
 
 	/**
@@ -490,7 +467,6 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/**
 	 * @param object|string $entity
 	 * @param string $field
@@ -502,7 +478,6 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/**
 	 * @param object|string $entity
 	 * @param string $field
@@ -512,7 +487,6 @@ class EntityFormMapper extends Nette\Object
 	{
 		return $this->getMeta($entity)->getAssociationTargetClass($field);
 	}
-
 
 
 	/**
@@ -530,9 +504,7 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/************************ aliases ************************/
-
 
 
 	/**
@@ -543,7 +515,6 @@ class EntityFormMapper extends Nette\Object
 	{
 		$this->aliases[spl_object_hash($control)] = $alias;
 	}
-
 
 
 	/**
@@ -557,13 +528,13 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/**
 	 * @param string $name
 	 */
 	public static function registerAliasMethod($name = 'bind')
 	{
-		BaseControl::extensionMethod($name, function (BaseControl $_this, $alias) {
+		BaseControl::extensionMethod($name, function (BaseControl $_this, $alias)
+		{
 			$form = $_this->getForm();
 			if ($form instanceof Form) {
 				/** @var \Kdyby\Doctrine\Forms\Form $form */
@@ -577,7 +548,6 @@ class EntityFormMapper extends Nette\Object
 	/************************ mappers ************************/
 
 
-
 	/**
 	 * @param \Nette\Forms\IControl $control
 	 * @param mixed $items
@@ -588,20 +558,19 @@ class EntityFormMapper extends Nette\Object
 		if (is_string($items)) {
 			$targetClass = $this->getControlEntityClass($control);
 			if (!$this->getMeta($targetClass)->hasField($items)) {
-				throw new Kdyby\InvalidArgumentException('Entity "' . $targetClass . '" has no property "' . $items . '".');
+				throw new \Nette\InvalidArgumentException('Entity "' . $targetClass . '" has no property "' . $items . '".');
 			}
 
-			$items = function (Dao $dao) use ($items, $key) {
+			$items = function (\DoctrineModule\ORM\BaseRepository $dao) use ($items, $key)
+			{
 				return $dao->findPairs($items, $key);
 			};
-
 		} elseif (!is_callable($items)) {
-			throw new Kdyby\InvalidArgumentException('EntityMapper was not able to resolve items mapper, ' . gettype($items) . ' given.');
+			throw new \Nette\InvalidArgumentException('EntityMapper was not able to resolve items mapper, ' . gettype($items) . ' given.');
 		}
 
 		$this->mappers[spl_object_hash($control)] = $items;
 	}
-
 
 
 	/**
@@ -617,7 +586,6 @@ class EntityFormMapper extends Nette\Object
 
 		return NULL;
 	}
-
 
 
 	/**
@@ -637,7 +605,6 @@ class EntityFormMapper extends Nette\Object
 	}
 
 
-
 	/**
 	 * @param string $name
 	 */
@@ -645,7 +612,8 @@ class EntityFormMapper extends Nette\Object
 	{
 		foreach (static::$itemControls as $classType) {
 			$refl = Nette\Reflection\ClassType::from($classType);
-			$refl->setExtensionMethod($name, function (BaseControl $_this, $mapper, $key = 'id') {
+			$refl->setExtensionMethod($name, function (BaseControl $_this, $mapper, $key = 'id')
+			{
 				$form = $_this->getForm();
 				if ($form instanceof Form) {
 					/** @var \Kdyby\Doctrine\Forms\Form $form */
@@ -655,5 +623,4 @@ class EntityFormMapper extends Nette\Object
 			});
 		}
 	}
-
 }

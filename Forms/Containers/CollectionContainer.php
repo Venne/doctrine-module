@@ -19,6 +19,7 @@ use Venne;
 use Nette;
 use Nette\ComponentModel\IContainer;
 use DoctrineModule\Forms\Containers\Doctrine\EntityContainer;
+use Venne\Forms\IObjectContainer;
 
 
 /**
@@ -227,7 +228,7 @@ class CollectionContainer extends \FormsModule\Containers\Replicator implements 
 	 */
 	protected function getParentEntity()
 	{
-		return $this->getParent()->getEntity();
+		return $this->getParent()->getData();
 	}
 
 
@@ -279,7 +280,7 @@ class CollectionContainer extends \FormsModule\Containers\Replicator implements 
 			throw new \Nette\InvalidArgumentException('Given container is not instance of Kdyby\Doctrine\Forms\EntityContainer, instance of ' . get_class($container) . ' given.');
 		}
 
-		$entity = $container->getEntity();
+		$entity = $container->getData();
 		parent::remove($container, $cleanUpGroups);
 		$this->getMapper()->remove($entity);
 	}

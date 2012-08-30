@@ -15,6 +15,8 @@ use Doctrine;
 use Venne;
 use Nette;
 use Nette\ComponentModel\IContainer;
+use Venne\Forms\IObjectContainer;
+use Venne\Forms\Form;
 
 /**
  * @author Filip Procházka <filip.prochazka@kdyby.org>
@@ -42,7 +44,7 @@ class EntityContainer extends Nette\Forms\Container implements IObjectContainer
 	/**
 	 * @var object
 	 */
-	private $entity;
+	private $data;
 
 	/**
 	 * @var \Kdyby\Doctrine\Forms\EntityMapper
@@ -57,15 +59,15 @@ class EntityContainer extends Nette\Forms\Container implements IObjectContainer
 
 
 	/**
-	 * @param object $entity
+	 * @param object $data
 	 * @param \Kdyby\Doctrine\Forms\EntityMapper $mapper
 	 */
-	public function __construct($entity, EntityMapper $mapper = NULL)
+	public function __construct($data, EntityMapper $mapper = NULL)
 	{
 		parent::__construct();
-		$this->monitor('DoctrineModule\Forms\Form');
+		$this->monitor('Venne\Forms\Form');
 
-		$this->entity = $entity;
+		$this->data = $data;
 		$this->mapper = $mapper;
 	}
 
@@ -77,7 +79,7 @@ class EntityContainer extends Nette\Forms\Container implements IObjectContainer
 	private function getBuilder()
 	{
 		if ($this->builder === NULL) {
-			$class = $this->getMapper()->getMeta($this->getEntity());
+			$class = $this->getMapper()->getMeta($this->getData());
 			$this->builder = new ContainerBuilder($this, $class);
 		}
 
@@ -100,7 +102,7 @@ class EntityContainer extends Nette\Forms\Container implements IObjectContainer
 
 	/**
 	 * @param  \Nette\ComponentModel\IContainer
-	 * @throws \Kdyby\InvalidStateException
+	 * @throws \Nette\InvalidStateException
 	 */
 	protected function validateParent(Nette\ComponentModel\IContainer $parent)
 	{
@@ -120,9 +122,9 @@ class EntityContainer extends Nette\Forms\Container implements IObjectContainer
 	/**
 	 * @return object
 	 */
-	public function getEntity()
+	public function getData()
 	{
-		return $this->entity;
+		return $this->data;
 	}
 
 
@@ -144,12 +146,12 @@ class EntityContainer extends Nette\Forms\Container implements IObjectContainer
 	{
 		parent::attached($obj);
 
-		if ($obj instanceof \DoctrineModule\Forms\Form) {
-			foreach ($this->getMapper()->getIdentifierValues($this->entity) as $key => $id) {
+		if ($obj instanceof Form) {
+			foreach ($this->getMapper()->getIdentifierValues($this->data) as $key => $id) {
 				$this->addHidden($key)->setDefaultValue($id);
 			}
 
-			$this->getMapper()->assign($this->entity, $this);
+			$this->getMapper()->assign($this->data, $this);
 		}
 	}
 
@@ -178,7 +180,7 @@ class EntityContainer extends Nette\Forms\Container implements IObjectContainer
 	 */
 	public function addMany($name, $factory, $createDefault = 0)
 	{
-		$collection = $this->getMapper()->getCollection($this->entity, $name);
+		$collection = $this->getMapper()->getCollection($this->data, $name);
 		$this[$name] = $container = new CollectionContainer($collection, $factory);
 		$container->createDefault = $createDefault;
 		return $container;
