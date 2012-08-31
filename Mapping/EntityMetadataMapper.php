@@ -171,7 +171,7 @@ abstract class EntityMetadataMapper extends Nette\Object
 
 		if (!$entity instanceof $assocMapping['targetEntity']) {
 			$declaringClass = $meta->getReflectionProperty($association)->getDeclaringClass();
-			throw new Kdyby\InvalidArgumentException("Collection " . $declaringClass->getName() . '::$' . $association . " cannot contain entity of type '" . get_class($entity) . "'.");
+			throw new \Nette\InvalidArgumentException("Collection " . $declaringClass->getName() . '::$' . $association . " cannot contain entity of type '" . get_class($entity) . "'.");
 		}
 
 		$this->getAssociation($entity, $association)->add($element);

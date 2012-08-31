@@ -163,7 +163,7 @@ class DoctrineExtension extends CompilerExtension
 			->setShared(false);
 
 		$container->addDefinition($this->prefix("entityFormMapper"))
-			->setClass("DoctrineModule\Forms\Mappers\EntityMapper", array("@entityManager", new \DoctrineModule\Mapping\TypeMapper));
+			->setClass("DoctrineModule\Forms\Mappers\EntityMapper", array("@entityManager"));
 
 		$this->processConsole();
 	}
