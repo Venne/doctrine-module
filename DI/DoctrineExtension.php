@@ -83,13 +83,9 @@ class DoctrineExtension extends CompilerExtension
 		$config = $this->getConfig($this->defaults);
 
 		// Cache
-		$cache = $container->addDefinition($this->prefix("cache"))
-			->setInternal(true);
-		if (function_exists("apc_fetch")) {
-			$cache->setClass("Doctrine\Common\Cache\ApcCache");
-		} else {
-			$cache->setClass("Doctrine\Common\Cache\ArrayCache");
-		}
+		$container->addDefinition($this->prefix("cache"))
+			->setInternal(true)
+			->setClass("DoctrineModule\Cache", array('@cacheStorage'));
 
 		$container->addDefinition("doctrinePanel")
 			->setClass("DoctrineModule\Diagnostics\Panel")
