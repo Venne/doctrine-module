@@ -18,7 +18,8 @@ use Nette\Object;
  */
 class BaseEntity extends Object implements IEntity
 {
-
-
+	public function __construct()
+	{
+	}
 }
 
