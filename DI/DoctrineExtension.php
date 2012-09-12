@@ -98,15 +98,6 @@ class DoctrineExtension extends CompilerExtension
 		//		->addSetup("setSQLLogger", "@doctrinePanel");
 		//}
 
-		if ($container->parameters["database"]["driver"] == "pdo_mysql" && $container->parameters["database"]["charset"]) {
-			$container->addDefinition($this->prefix("mysqlListener"))
-				->setClass("Doctrine\DBAL\Event\Listeners\MysqlSessionInit", array($container->parameters["database"]["charset"], $container->parameters["database"]["collation"]))
-				->setInternal(true);
-
-			//	$container->getDefinition($this->prefix("eventManager"))
-			//			->addSetup("addEventSubscriber", "@doctrine.mysqlListener");
-		}
-
 
 		// configurations
 		foreach ($config["configurations"] as $name => $configuration) {
