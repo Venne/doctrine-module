@@ -21,6 +21,7 @@ use DoctrineModule\IQueryObject;
 use DoctrineModule\Mapping\EntityValuesMapper;
 use Nette;
 use Nette\ObjectMixin;
+use DoctrineModule\SqlException;
 
 /**
  * @author Filip Procházka
