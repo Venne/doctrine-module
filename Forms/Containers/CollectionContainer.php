@@ -276,8 +276,8 @@ class CollectionContainer extends \FormsModule\Containers\Replicator implements 
 	 */
 	public function remove(Nette\Forms\Container $container, $cleanUpGroups = FALSE)
 	{
-		if (!$container instanceof EntityContainer) {
-			throw new \Nette\InvalidArgumentException('Given container is not instance of Kdyby\Doctrine\Forms\EntityContainer, instance of ' . get_class($container) . ' given.');
+		if (!$container instanceof \DoctrineModule\Forms\Containers\EntityContainer) {
+			throw new \Nette\InvalidArgumentException('Given container is not instance of DoctrineModule\Forms\Containers\EntityContainer, instance of ' . get_class($container) . ' given.');
 		}
 
 		$entity = $container->getData();
