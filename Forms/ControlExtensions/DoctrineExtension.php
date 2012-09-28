@@ -85,18 +85,13 @@ class DoctrineExtension extends Object implements IControlExtension
 	 * @param $form
 	 * @param $name
 	 * @param null $label
-	 * @param null $items
 	 * @param null $size
-	 * @param array $criteria
-	 * @param array $orderBy
-	 * @param null $limit
-	 * @param null $offset
 	 * @return ManyToOne
 	 */
-	public function  addManyToOne($form, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
+	public function  addManyToOne($form, $name, $label = NULL, $size = NULL)
 	{
-		$form[$name] = $control = new ManyToOne($label, $size);
-		$form->form->onAttached[] = $this->callback('ManyToOne', $form, $control, $name, $criteria, $orderBy, $limit, $offset);
+		$form[$name] = $control = new ManyToOne('ManyToOne', $label, $size);
+		$control->setPrompt("---------");
 		return $form[$name];
 	}
 
@@ -105,18 +100,13 @@ class DoctrineExtension extends Object implements IControlExtension
 	 * @param $form
 	 * @param $name
 	 * @param null $label
-	 * @param null $items
 	 * @param null $size
-	 * @param array $criteria
-	 * @param array $orderBy
-	 * @param null $limit
-	 * @param null $offset
 	 * @return ManyToOne
 	 */
-	public function addOneToOne($form, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
+	public function addOneToOne($form, $name, $label = NULL, $size = NULL)
 	{
-		$form[$name] = $control = new ManyToOne($label, $size);
-		$form->form->onAttached[] = $this->callback('OneToOne', $form, $control, $name, $criteria, $orderBy, $limit, $offset);
+		$form[$name] = $control = new ManyToOne('OneToOne', $label, $size);
+		$control->setPrompt("---------");
 		return $form[$name];
 	}
 
@@ -125,18 +115,12 @@ class DoctrineExtension extends Object implements IControlExtension
 	 * @param $form
 	 * @param $name
 	 * @param null $label
-	 * @param null $items
 	 * @param null $size
-	 * @param array $criteria
-	 * @param array $orderBy
-	 * @param null $limit
-	 * @param null $offset
 	 * @return ManyToMany
 	 */
-	public function addManyToMany($form, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
+	public function addManyToMany($form, $name, $label = NULL, $size = NULL)
 	{
-		$form[$name] = $control = new ManyToMany($label, $items, $size);
-		$form->getForm()->onAttached[] = $this->callback('ManyToMany', $form, $control, $name, $criteria, $orderBy, $limit, $offset);
+		$form[$name] = $control = new ManyToMany('ManyToMany', $label, $size);
 		return $form[$name];
 	}
 
@@ -145,39 +129,12 @@ class DoctrineExtension extends Object implements IControlExtension
 	 * @param $form
 	 * @param $name
 	 * @param null $label
-	 * @param null $items
 	 * @param null $size
-	 * @param array $criteria
-	 * @param array $orderBy
-	 * @param null $limit
-	 * @param null $offset
 	 * @return ManyToMany
 	 */
-	public function addOneToMany($form, $name, $label = NULL, $items = NULL, $size = NULL, array $criteria = array(), array $orderBy = NULL, $limit = NULL, $offset = NULL)
+	public function addOneToMany($form, $name, $label = NULL, $size = NULL)
 	{
-		$form[$name] = $control = new ManyToMany($label, $items, $size);
-		$form->form->onAttached[] = $this->callback('OneToMany', $form, $control, $name, $criteria, $orderBy, $limit, $offset);
+		$form[$name] = $control = new ManyToMany('OneToMany', $label, $size);
 		return $form[$name];
-	}
-
-
-	public function callback($type, $container, $control, $name, $criteria, $orderBy, $limit, $offset)
-	{
-		return function() use ($type, $container, $control, $name, $criteria, $orderBy, $limit, $offset)
-		{
-			$ref = $container->data->getReflection()->getProperty($name)->getAnnotation($type);
-
-			$class = $ref["targetEntity"];
-			if (substr($class, 0, 1) != "\\") {
-				$class = "\\" . $container->data->getReflection()->getNamespaceName() . "\\" . $class;
-			}
-
-			$items = $container->form->mapper->entityManager->getRepository($class)->findBy($criteria, $orderBy, $limit, $offset);
-			$control->setItems($items);
-
-			if ($type === 'ManyToOne' || $type === 'OneToOne') {
-				$control->setPrompt("---------");
-			}
-		};
 	}
 }

@@ -16,21 +16,16 @@ use Nette\Forms\Controls\BaseControl;
 use Nette;
 
 /**
- * Select box control that allows single item selection.
- *
- * @author	 David Grudl
- *
- * @property-read mixed $rawValue
- * @property   array $items
- * @property-read mixed $selectedItem
- * @property-read bool $firstSkipped
+ * @author     Josef Kříž
  */
 class ManyToOne extends BaseControl
 {
 
-
 	/** @var array */
 	private $items = array();
+
+	/** @var bool */
+	private $itemsLoaded = false;
 
 	/** @var array */
 	protected $allowed = array();
@@ -41,24 +36,61 @@ class ManyToOne extends BaseControl
 	/** @var bool */
 	private $useKeys = TRUE;
 
+	/** @var string */
+	protected $type;
+
+	/** @var array */
+	protected $criteria = array();
+
+	/** @var array */
+	protected $orderBy = array();
+
+	/** @var int */
+	protected $limit;
+
+	/** @var int */
+	protected $offset;
+
+	/** @var \Doctrine\ORM\QueryBuilder */
+	protected $query;
+
+	/** @var array */
+	protected $dependOn;
 
 
 	/**
 	 * @param  string  label
 	 * @param  array   items from which to choose
-	 * @param  int	 number of rows that should be visible
+	 * @param  int     number of rows that should be visible
 	 */
-	public function __construct($label = NULL, array $items = NULL, $size = NULL)
+	public function __construct($type, $label = NULL, $size = NULL)
 	{
 		parent::__construct($label);
+
 		$this->control->setName('select');
 		$this->control->size = $size > 1 ? (int)$size : NULL;
-		if ($items !== NULL) {
-			$this->setItems($items);
-		}
-		//dump($this->items);
+
+		$this->type = $type;
 	}
 
+
+	protected function loadEntities()
+	{
+		if ($this->query) {
+			$items = $this->query->getQuery()->getResult();
+		} else {
+			$ref = $this->getParent()->data->getReflection()->getProperty($this->name)->getAnnotation($this->type);
+
+			$class = $ref["targetEntity"];
+			if (substr($class, 0, 1) != "\\") {
+				$class = "\\" . $this->getParent()->data->getReflection()->getNamespaceName() . "\\" . $class;
+			}
+
+			$items = $this->getParent()->form->mapper->entityManager->getRepository($class)->findBy($this->criteria, $this->orderBy, $this->limit, $this->offset);
+		}
+
+		$this->setItems($items);
+	}
 
 
 	public function setValue($value)
@@ -67,7 +99,6 @@ class ManyToOne extends BaseControl
 			return parent::setValue($value->id);
 		}
 	}
-
 
 
 	/**
@@ -80,7 +111,6 @@ class ManyToOne extends BaseControl
 		$path = explode('[', strtr(str_replace(array('[]', ']'), '', $this->getHtmlName()), '.', '_'));
 		$this->value = (Nette\Utils\Arrays::get($this->getForm()->getHttpData(), $path, NULL));
 	}
-
 
 
 	/**
@@ -99,9 +129,13 @@ class ManyToOne extends BaseControl
 	}
 
 
-
 	public function getValue()
 	{
+		if (!$this->itemsLoaded) {
+			$this->loadEntities();
+			$this->itemsLoaded = true;
+		}
+
 		foreach ($this->items as $item) {
 			if ($item instanceof \DoctrineModule\Entities\IEntity) {
 				if ($item->id == $this->value) {
@@ -111,7 +145,6 @@ class ManyToOne extends BaseControl
 		}
 		return NULL;
 	}
-
 
 
 	/**
@@ -125,7 +158,6 @@ class ManyToOne extends BaseControl
 	}
 
 
-
 	/**
 	 * Generates control's HTML element.
 	 *
@@ -133,15 +165,22 @@ class ManyToOne extends BaseControl
 	 */
 	public function getControl()
 	{
+		if (!$this->itemsLoaded) {
+			$this->loadEntities();
+			$this->itemsLoaded = true;
+		}
+
 		$control = parent::getControl();
-		if ($this->prompt) {
-			reset($this->items);
-			$control->data('nette-empty-value', key($this->items));
+		$option = Nette\Utils\Html::el('option');
+
+		if ($this->prompt !== NULL) {
+			$control->add($this->prompt instanceof Nette\Utils\Html
+					? $this->prompt->value('')
+					: (string)$option->value('')->setText($this->translate((string)$this->prompt))
+			);
 		}
 
 		$selected = (array)$this->getRawValue();
-
-		$option = Nette\Utils\Html::el('option');
 
 		foreach ($this->items as $key => $value) {
 			if (!is_array($value)) {
@@ -158,16 +197,12 @@ class ManyToOne extends BaseControl
 			}
 
 			foreach ($value as $value2) {
-				//if ($value2 == $this->getForm()->entity->__toString()) {
-				//	continue;
-				//}
-
 				if ($value2 instanceof \DoctrineModule\Entities\IEntity) {
 					$key2 = $value2->id;
 				} else {
 					$key2 = $value2;
 				}
-				
+
 				if ($value2 instanceof Nette\Utils\Html) {
 					$dest->add((string)$value2->selected(isset($selected[$key2])));
 				} else {
@@ -178,7 +213,6 @@ class ManyToOne extends BaseControl
 		}
 		return $control;
 	}
-
 
 
 	/**
@@ -193,7 +227,6 @@ class ManyToOne extends BaseControl
 	}
 
 
-
 	/**
 	 * Ignores the first item in select box.
 	 *
@@ -202,18 +235,9 @@ class ManyToOne extends BaseControl
 	 */
 	public function setPrompt($prompt)
 	{
-		if (is_bool($prompt)) {
-			$this->prompt = $prompt;
-		} else {
-			$this->prompt = TRUE;
-			if ($prompt !== NULL) {
-				$this->items = array('' => $prompt) + $this->items;
-				$this->allowed = array('' => '') + $this->allowed;
-			}
-		}
+		$this->prompt = $prompt;
 		return $this;
 	}
-
 
 
 	/** @deprecated */
@@ -222,7 +246,6 @@ class ManyToOne extends BaseControl
 		trigger_error(__METHOD__ . '() is deprecated; use setPrompt() instead.', E_USER_WARNING);
 		return $this->setPrompt($v);
 	}
-
 
 
 	/**
@@ -236,7 +259,6 @@ class ManyToOne extends BaseControl
 	}
 
 
-
 	/**
 	 * Are the keys used?
 	 *
@@ -248,14 +270,13 @@ class ManyToOne extends BaseControl
 	}
 
 
-
 	/**
 	 * Sets items from which to choose.
 	 *
 	 * @param  array
 	 * @return SelectBox  provides a fluent interface
 	 */
-	public function setItems(array $items, $useKeys = TRUE)
+	protected function setItems(array $items, $useKeys = TRUE)
 	{
 		$this->items = $items;
 		$this->allowed = array();
@@ -285,17 +306,15 @@ class ManyToOne extends BaseControl
 	}
 
 
-
 	/**
 	 * Returns items from which to choose.
 	 *
 	 * @return array
 	 */
-	final public function getItems()
+	protected function getItems()
 	{
 		return $this->items;
 	}
-
 
 
 	/**
@@ -313,4 +332,129 @@ class ManyToOne extends BaseControl
 		}
 	}
 
+
+	/**
+	 * @param array $criteria
+	 */
+	public function setCriteria($criteria)
+	{
+		$this->criteria = $criteria;
+		$this->itemsLoaded = false;
+		return $this;
+	}
+
+
+	/**
+	 * @return array
+	 */
+	public function getCriteria()
+	{
+		return $this->criteria;
+	}
+
+
+	/**
+	 * @param int $offset
+	 */
+	public function setOffset($offset)
+	{
+		$this->offset = $offset;
+		$this->itemsLoaded = false;
+		return $this;
+	}
+
+
+	/**
+	 * @return int
+	 */
+	public function getOffset()
+	{
+		return $this->offset;
+	}
+
+
+	/**
+	 * @param array $orderBy
+	 */
+	public function setOrderBy($orderBy)
+	{
+		$this->orderBy = $orderBy;
+		$this->itemsLoaded = false;
+		return $this;
+	}
+
+
+	/**
+	 * @return array
+	 */
+	public function getOrderBy()
+	{
+		return $this->orderBy;
+	}
+
+
+	/**
+	 * @param int $limit
+	 */
+	public function setLimit($limit)
+	{
+		$this->limit = $limit;
+		$this->itemsLoaded = false;
+		return $this;
+	}
+
+
+	/**
+	 * @return int
+	 */
+	public function getLimit()
+	{
+		return $this->limit;
+	}
+
+
+	/**
+	 * @param \Doctrine\ORM\QueryBuilder $query
+	 */
+	public function setQuery($query)
+	{
+		$this->query = $query;
+		$this->itemsLoaded = false;
+		return $this;
+	}
+
+
+	/**
+	 * @return \Doctrine\ORM\QueryBuilder
+	 */
+	public function getQuery()
+	{
+		return $this->query;
+	}
+
+
+	/**
+	 * @param \Nette\Forms\IControl $control
+	 * @param $name
+	 * @return ManyToOne
+	 */
+	public function  setDependOn(\Nette\Forms\IControl $control, $name)
+	{
+		$_this = $this;
+		$this->dependOn = array($control, $name);
+
+		$this->criteria = array($name => -1);
+
+		$this->form->addSubmit($this->name. '_reload', 'reload');
+
+		$control->form->onBeforeRender[] = function ($form) use ($_this, $control) {
+			$control->getControlPrototype()->onChange = "$('#frm{$form->name}-{$_this->name}_reload').click();";
+		};
+
+		$control->form->onSave[] = function ($form) use ($_this, $control, $name) {
+			$_this->setCriteria(array($name => $control->value));
+		};
+
+		return $this;
+	}
 }
