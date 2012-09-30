@@ -53,7 +53,7 @@ class FormFactory extends \Venne\Forms\FormFactory
 
 	public function handleSave(Form $form)
 	{
-		if ($form->isSubmitted() === $form->getSubmitButton()) {
+		if ($form->hasSaveButton() && $form->isSubmitted() === $form->getSaveButton()) {
 			try {
 				$this->mapper->entityManager->getRepository(get_class($form->data))->save($form->data);
 			} catch (\DoctrineModule\SqlException $e) {
