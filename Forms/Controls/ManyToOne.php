@@ -22,10 +22,10 @@ class ManyToOne extends BaseControl
 {
 
 	/** @var array */
-	private $items = array();
+	protected $items = array();
 
 	/** @var bool */
-	private $itemsLoaded = false;
+	protected $itemsLoaded = false;
 
 	/** @var array */
 	protected $allowed = array();

@@ -17,7 +17,7 @@ use Nette\Forms\Controls\MultiSelectBox;
 /**
  * Select box control that allows multiple item selection.
  *
- * @author	 David Grudl
+ * @author     David Grudl
  */
 class ManyToMany extends ManyToOne
 {
@@ -30,6 +30,11 @@ class ManyToMany extends ManyToOne
 	 */
 	public function getValue()
 	{
+		if (!$this->itemsLoaded) {
+			$this->loadEntities();
+			$this->itemsLoaded = true;
+		}
+
 		$allowed = array_keys($this->allowed);
 		if ($this->getPrompt()) {
 			unset($allowed[0]);
@@ -43,7 +48,6 @@ class ManyToMany extends ManyToOne
 		}
 		return $data;
 	}
-
 
 
 	/**
@@ -71,7 +75,6 @@ class ManyToMany extends ManyToOne
 	}
 
 
-
 	/**
 	 * Returns selected values.
 	 *
@@ -91,7 +94,6 @@ class ManyToMany extends ManyToOne
 	}
 
 
-
 	/**
 	 * Returns HTML name of control.
 	 *
@@ -101,7 +103,6 @@ class ManyToMany extends ManyToOne
 	{
 		return parent::getHtmlName() . '[]';
 	}
-
 
 
 	/**
@@ -117,13 +118,12 @@ class ManyToMany extends ManyToOne
 	}
 
 
-
 	public function setValue($values)
 	{
 		$data = array();
 		if ($values instanceof \Traversable) {
 			foreach ($values as $value) {
-				if(!isset($value->id)){
+				if (!isset($value->id)) {
 					continue;
 				}
 
@@ -133,5 +133,4 @@ class ManyToMany extends ManyToOne
 		$this->value = $data;
 		return $this;
 	}
-
 }
