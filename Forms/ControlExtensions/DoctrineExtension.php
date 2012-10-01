@@ -74,7 +74,7 @@ class DoctrineExtension extends Object implements IControlExtension
 	 */
 	public function addMany($form, $name, $containerFactory, $entityFactory = NULL)
 	{
-		\FormsModule\Containers\Replicator::register();
+		\Kdyby\Extension\Forms\Replicator\Replicator::register();
 
 		$collection = $form->getMapper()->getCollection($form->getData(), $name);
 		return $form[$name] = new \DoctrineModule\Forms\Containers\CollectionContainer($collection, $containerFactory);
