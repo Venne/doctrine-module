@@ -11,7 +11,7 @@
 
 namespace DoctrineModule\Entities;
 
-use Nette\Object;
+use Venne;
 
 /**
  * @author Josef Kříž <pepakriz@gmail.com>
@@ -39,6 +39,15 @@ class NamedEntity extends IdentifiedEntity
 	 * @return string
 	 */
 	public function getName()
+	{
+		return $this->name;
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function __toString()
 	{
 		return $this->name;
 	}
