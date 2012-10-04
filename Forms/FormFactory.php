@@ -66,8 +66,9 @@ class FormFactory extends \Venne\Forms\FormFactory
 							break;
 						}
 					}
-				} else {
-					throw new UnexpectedValueException("Property $class::$$name must be array or NULL, " . gettype($_this->$name) . " given.");
+				} elseif ($this->onCatchError !== NULL) {
+					$class = get_class($this);
+					throw new \Nette\UnexpectedValueException("Property $class::onCatchError must be array or NULL, " . gettype($_this->$name) . " given.");
 				}
 
 				if ($ok) {
