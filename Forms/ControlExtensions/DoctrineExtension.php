@@ -77,7 +77,9 @@ class DoctrineExtension extends Object implements IControlExtension
 		\Kdyby\Extension\Forms\Replicator\Replicator::register();
 
 		$collection = $form->getMapper()->getCollection($form->getData(), $name);
-		return $form[$name] = new \DoctrineModule\Forms\Containers\CollectionContainer($collection, $containerFactory);
+		$form[$name] = $control = new \DoctrineModule\Forms\Containers\CollectionContainer($collection, $containerFactory);
+		$control->containerClass = 'DoctrineModule\Forms\Containers\EntityContainer';
+		return $control;
 	}
 
 

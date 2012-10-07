@@ -26,7 +26,7 @@ use Venne\Forms\Form;
  * @method void onSave(array $values, \Nette\Forms\Container $container)
  * @method void onLoad(array $values, object $entity)
  */
-class EntityContainer extends Nette\Forms\Container implements IObjectContainer
+class EntityContainer extends Venne\Forms\Container implements IObjectContainer
 {
 
 	/**
@@ -84,18 +84,6 @@ class EntityContainer extends Nette\Forms\Container implements IObjectContainer
 		}
 
 		return $this->builder;
-	}
-
-
-
-	/**
-	 * @param string $field
-	 * @return \Nette\Forms\Controls\BaseControl
-	 */
-	public function add($field)
-	{
-		$this->getBuilder()->addFields($fields = func_get_args());
-		return $this[reset($fields)];
 	}
 
 
