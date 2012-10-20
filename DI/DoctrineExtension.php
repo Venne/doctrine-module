@@ -38,6 +38,7 @@ class DoctrineExtension extends CompilerExtension
 		),
 		'proxiesDir' => '%appDir%/proxies',
 		'proxiesNamespace' => 'Proxies',
+		'mappingDriver' => 'annotation',
 	);
 
 	/** @var array */
@@ -71,6 +72,16 @@ class DoctrineExtension extends CompilerExtension
 	/** @var array */
 	public $defaults = array(
 		'debugger' => TRUE,
+	);
+
+	/** @var array */
+	public $metadataDriverClasses = array(
+		'driverChain' => 'Doctrine\ORM\Mapping\Driver\DriverChain',
+		'annotation' => 'Doctrine\ORM\Mapping\Driver\AnnotationDriver',
+		'xml' => 'Doctrine\ORM\Mapping\Driver\XmlDriver',
+		'yml' => 'Doctrine\ORM\Mapping\Driver\YamlDriver',
+		'php' => 'Doctrine\ORM\Mapping\Driver\PHPDriver',
+		'staticphp' => 'Doctrine\ORM\Mapping\Driver\StaticPHPDriver'
 	);
 
 	/** @var string|NULL */
@@ -177,16 +188,28 @@ class DoctrineExtension extends CompilerExtension
 		foreach (\Nette\Utils\Finder::findFiles('Entities/*.php')->from($container->parameters['libsDir'] . '/venne') as $file) {
 			$paths[] = $file->getPath();
 		}
+
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationDriver'))
 			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), $paths))
 			->addSetup('setFileExtension', '.php')
 			->setInternal(true);
 
+
+		$paths = array();
+		foreach (\Nette\Utils\Finder::findFiles('*.dcm.yml')->from($container->parameters['libsDir'] . '/venne') as $file) {
+			$paths[] = $file->getPath();
+		}
+		$paths = array_unique($paths);
+		$container->addDefinition($this->configurationsPrefix($name . 'YmlDriver'))
+			->setClass("Doctrine\ORM\Mapping\Driver\YamlDriver", array($paths))
+			->setInternal(true);
+
+
 		$container->addDefinition($this->configurationsPrefix($name))
 			->setClass("Doctrine\ORM\Configuration")
 			->addSetup('setMetadataCacheImpl', '@' . $this->prefix("cache"))
 			->addSetup("setQueryCacheImpl", '@' . $this->prefix("cache"))
-			->addSetup("setMetadataDriverImpl", $this->configurationsPrefix('@' . $name . 'AnnotationDriver'))
+			->addSetup("setMetadataDriverImpl", $this->configurationsPrefix('@' . $name . ucfirst($config['mappingDriver']). 'Driver'))
 			->addSetup("setProxyDir", $config['proxiesDir'])
 			->addSetup("setProxyNamespace", $config['proxiesNamespace'])
 			->setInternal(true);
@@ -230,6 +253,10 @@ class DoctrineExtension extends CompilerExtension
 			->setAutowired(FALSE);
 		$container->addDefinition($this->prefix('consoleCommandORMRunDql'))
 			->setClass('Doctrine\ORM\Tools\Console\Command\RunDqlCommand')
+			->addTag('command')
+			->setAutowired(FALSE);
+		$container->addDefinition($this->prefix('consoleCommandORMConvertMapping'))
+			->setClass('Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand')
 			->addTag('command')
 			->setAutowired(FALSE);
 
