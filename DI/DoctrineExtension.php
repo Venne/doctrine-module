@@ -395,7 +395,7 @@ class DoctrineExtension extends CompilerExtension
 					$ret = false;
 				}
 				$connection->getSchemaManager()->tablesExist('user'); // try connect with some sql
-			} catch (\PDOException $ex) {
+			} catch (\Exception $ex) {
 				$ret = false;
 			}
 
