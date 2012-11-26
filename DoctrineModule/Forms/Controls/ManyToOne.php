@@ -95,7 +95,7 @@ class ManyToOne extends BaseControl
 
 	public function setValue($value)
 	{
-		if ($value instanceof \DoctrineModule\Entities\IdentifiedEntity) {
+		if ($value instanceof \DoctrineModule\Entities\IEntity) {
 			return parent::setValue($value->id);
 		}
 	}
@@ -206,7 +206,7 @@ class ManyToOne extends BaseControl
 				if ($value2 instanceof Nette\Utils\Html) {
 					$dest->add((string)$value2->selected(isset($selected[$key2])));
 				} else {
-					$value2 = $this->translate((string)$value2);
+					$value2 = (string)$this->translate($value2);
 					$dest->add((string)$option->value($key2 === $value2 ? "" : $key2)->selected(in_array($key2, $selected))->setText($value2));
 				}
 			}
@@ -445,7 +445,7 @@ class ManyToOne extends BaseControl
 
 		$this->criteria = array($name => -1);
 
-		$this->form->addSubmit($this->name. '_reload', 'reload');
+		$this->form->addSubmit($this->name . '_reload', 'reload');
 
 		$control->form->onBeforeRender[] = function ($form) use ($_this, $control) {
 			$control->getControlPrototype()->onChange = "$('#frm{$form->name}-{$_this->name}_reload').click();";
