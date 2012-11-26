@@ -12,6 +12,7 @@
 namespace DoctrineModule\DI;
 
 use Venne;
+use Nette\Reflection\ClassType;
 use Nette\DI\ContainerBuilder;
 use Nette\Config\CompilerExtension;
 use Nette\Utils\Strings;
@@ -172,7 +173,7 @@ class DoctrineExtension extends CompilerExtension
 		$container = $this->getContainerBuilder();
 
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationRegistry'))
-			->setFactory("Doctrine\Common\Annotations\AnnotationRegistry::registerFile", array($container->parameters["libsDir"] . '/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php'))
+			->setFactory("Doctrine\Common\Annotations\AnnotationRegistry::registerFile", array(dirname(ClassType::from('Doctrine\ORM\Version')->getFileName()) . '/Mapping/Driver/DoctrineAnnotations.php'))
 			->setShared(false)
 			->setInternal(true);
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationReader'))

@@ -1,50 +1,50 @@
 {
-	"name": "venne/doctrine-module",
-	"description": "Doctrine module with macros and components",
-	"keywords": ["cms", "nette", "venne", "module"],
-	"type": "venne-module",
-	"authors": [
+	"name":"venne/doctrine-module",
+	"description":"Doctrine module with macros and components",
+	"keywords":["cms", "nette", "venne", "module"],
+	"authors":[
 		{
-			"name": "Josef Kříž",
-			"homepage": "http://josef-kriz.cz"
+			"name":"Josef Kříž",
+			"homepage":"http://josef-kriz.cz"
 		}
 	],
-	"require": {
-		"php" : ">=5.3.2",
-		"venne/forms-module" : "2.0.x-dev",
-		"doctrine/orm" : "2.3.x",
-		"symfony/yaml" : "2.1.x"
+	"require":{
+		"php":">=5.3.2",
+		"venne/forms-module":"2.0.x-dev",
+		"doctrine/orm":"2.3.x",
+		"symfony/yaml":"2.1.x"
 	},
-	"autoload": {
-		"psr-0": { "DoctrineModule": "" }
+	"autoload":{
+		"psr-0":{
+			"DoctrineModule":""
+		}
 	},
-	"target-dir": "DoctrineModule",
-	"extra": {
-		"branch-alias": {
-			"dev-master": "2.0.x-dev"
+	"extra":{
+		"branch-alias":{
+			"dev-master":"2.0.x-dev"
 		},
-		"venne": {
-			"configuration": {
-				"parameters": {
-					"database": {
-						"driver": "pdo_mysql",
-						"host": "",
-						"user": "",
-						"password": "",
-						"dbname": "",
-						"charset": "utf8",
-						"proxyDir": "%appDir%/proxy",
-						"proxyNamespace": "proxy",
-						"port": "",
-						"path": "",
-						"memory": ""
+		"venne":{
+			"configuration":{
+				"parameters":{
+					"database":{
+						"driver":"pdo_mysql",
+						"host":"",
+						"user":"",
+						"password":"",
+						"dbname":"",
+						"charset":"utf8",
+						"proxyDir":"%appDir%/proxy",
+						"proxyNamespace":"proxy",
+						"port":"",
+						"path":"",
+						"memory":""
 					}
 				},
-				"extensions": {
-					"doctrine": "DoctrineModule\\DI\\DoctrineExtension"
+				"extensions":{
+					"doctrine":"DoctrineModule\\DI\\DoctrineExtension"
 				},
-				"includes": [
-					"%libsDir%/venne/doctrine-module/DoctrineModule/Resources/config/doctrine.neon"
+				"includes":[
+					"%modules.doctrine.path%/Resources/config/doctrine.neon"
 				]
 			}
 		}
