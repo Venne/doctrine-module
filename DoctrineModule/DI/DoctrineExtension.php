@@ -270,10 +270,6 @@ class DoctrineExtension extends CompilerExtension
 			->setClass('Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper', array('@' . $this->connectionsPrefix('default')))
 			->addTag('commandHelper', 'db')
 			->setAutowired(FALSE);
-		$container->addDefinition($this->prefix('dialogHelper'))
-			->setClass('Symfony\Component\Console\Helper\DialogHelper')
-			->addTag('commandHelper', 'dialog')
-			->setAutowired(FALSE);
 	}
 
 	protected function processEventManager($name, array $config)
