@@ -16,6 +16,7 @@ use Nette\Reflection\ClassType;
 use Nette\DI\ContainerBuilder;
 use Nette\Config\CompilerExtension;
 use Nette\Utils\Strings;
+use Venne\Module\ModuleManager;
 
 /**
  * @author Josef Kříž <pepakriz@gmail.com>
@@ -186,23 +187,31 @@ class DoctrineExtension extends CompilerExtension
 			->setInternal(true);
 
 		$paths = array();
-		foreach (\Nette\Utils\Finder::findFiles('Entities/*.php')->from($container->parameters['libsDir'] . '/venne') as $file) {
-			$paths[] = $file->getPath();
+		foreach ($container->parameters['modules'] as $module) {
+			if ($module[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
+				foreach (\Nette\Utils\Finder::findFiles('Entities/*.php')->from($module[ModuleManager::MODULE_PATH]) as $file) {
+					$paths[$file->getPath()] = true;
+				}
+			}
 		}
 
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationDriver'))
-			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), $paths))
+			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), array_keys($paths)))
 			->addSetup('setFileExtension', '.php')
 			->setInternal(true);
 
 
 		$paths = array();
-		foreach (\Nette\Utils\Finder::findFiles('*.dcm.yml')->from($container->parameters['libsDir'] . '/venne') as $file) {
-			$paths[] = $file->getPath();
+		foreach ($container->parameters['modules'] as $module) {
+			if ($module[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
+				foreach (\Nette\Utils\Finder::findFiles('*.dcm.yml')->from($module[ModuleManager::MODULE_PATH]) as $file) {
+					$paths[$file->getPath()] = true;
+				}
+			}
 		}
-		$paths = array_unique($paths);
+
 		$container->addDefinition($this->configurationsPrefix($name . 'YmlDriver'))
-			->setClass("Doctrine\ORM\Mapping\Driver\YamlDriver", array($paths))
+			->setClass("Doctrine\ORM\Mapping\Driver\YamlDriver", array(array_keys($paths)))
 			->setInternal(true);
 
 
@@ -210,7 +219,7 @@ class DoctrineExtension extends CompilerExtension
 			->setClass("Doctrine\ORM\Configuration")
 			->addSetup('setMetadataCacheImpl', '@' . $this->prefix("cache"))
 			->addSetup("setQueryCacheImpl", '@' . $this->prefix("cache"))
-			->addSetup("setMetadataDriverImpl", $this->configurationsPrefix('@' . $name . ucfirst($config['mappingDriver']). 'Driver'))
+			->addSetup("setMetadataDriverImpl", $this->configurationsPrefix('@' . $name . ucfirst($config['mappingDriver']) . 'Driver'))
 			->addSetup("setProxyDir", $config['proxiesDir'])
 			->addSetup("setProxyNamespace", $config['proxiesNamespace'])
 			->setInternal(true);
@@ -271,6 +280,7 @@ class DoctrineExtension extends CompilerExtension
 			->addTag('commandHelper', 'db')
 			->setAutowired(FALSE);
 	}
+
 
 	protected function processEventManager($name, array $config)
 	{
@@ -381,8 +391,7 @@ class DoctrineExtension extends CompilerExtension
 		if (self::$isConnected === NULL) {
 			$ret = true;
 			$connection = $entityManager->getConnection();
-			$old = set_error_handler(function() use (& $ret)
-			{
+			$old = set_error_handler(function () use (& $ret) {
 				$ret = false;
 			});
 
@@ -444,6 +453,7 @@ class DoctrineExtension extends CompilerExtension
 		}
 	}
 
+
 	/**
 	 * @param \Nette\DI\ContainerBuilder $container
 	 * @param $tag
@@ -467,6 +477,5 @@ class DoctrineExtension extends CompilerExtension
 		}
 		return $ret;
 	}
-
 }
 
