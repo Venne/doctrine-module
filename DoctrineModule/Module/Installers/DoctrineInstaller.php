@@ -12,12 +12,14 @@
 namespace DoctrineModule\Module\Installers;
 
 use Venne;
+use Nette\Reflection\ClassType;
 use Venne\Utils\File;
 use Nette\DI\Container;
 use Venne\Module\IModule;
 use Doctrine\ORM\EntityManager;
 use Nette\Config\Adapters\NeonAdapter;
 use Venne\Module\Installers\BaseInstaller;
+use Venne\Module\ModuleManager;
 
 /**
  * @author Josef Kříž <pepakriz@gmail.com>
@@ -56,13 +58,25 @@ class DoctrineInstaller extends BaseInstaller
 	 */
 	public function install(IModule $module)
 	{
-		$classes = $this->prepare($module);
+		if (!$this->context->hasService('doctrine') || !$this->context->doctrine->createCheckConnection()) {
+			throw new \Exception('Database connection not found!');
+		}
+
+		$classes = $this->getClasses($module);
+
+		$metadata = array();
+		foreach ($classes as $class) {
+			$metadata[] = $this->entityManager->getClassMetadata($class);
+		}
 
 		$tool = new \Doctrine\ORM\Tools\SchemaTool($this->entityManager);
-
+		$this->entityManager->getConnection()->beginTransaction();
 		try {
-			$this->entityManager->getConnection()->beginTransaction();
-			$tool->createSchema($classes);
+			$tool->createSchema($metadata);
+			foreach ($this->getAllClasses() as $class) {
+				$metadata[] = $this->entityManager->getClassMetadata($class);
+			}
+			$tool->updateSchema($metadata);
 			$this->entityManager->getConnection()->commit();
 		} catch (Exception $e) {
 			$this->entityManager->getConnection()->rollback();
@@ -79,13 +93,28 @@ class DoctrineInstaller extends BaseInstaller
 	 */
 	public function uninstall(IModule $module)
 	{
-		$classes = $this->prepare($module);
+		if (!$this->context->hasService('doctrine') || !$this->context->doctrine->createCheckConnection()) {
+			throw new \Exception('Database connection not found!');
+		}
+
+		$classes = $this->getClasses($module);
+
+		$metadata = array();
+		foreach ($classes as $class) {
+			$metadata[] = $this->entityManager->getClassMetadata($class);
+		}
 
 		$tool = new \Doctrine\ORM\Tools\SchemaTool($this->entityManager);
-
+		$this->entityManager->getConnection()->beginTransaction();
 		try {
-			$this->entityManager->getConnection()->beginTransaction();
-			$tool->dropSchema($classes);
+			foreach ($classes as $class) {
+				foreach ($this->entityManager->getRepository($class)->findAll() as $entity) {
+					$this->entityManager->remove($entity);
+				}
+			}
+			$this->entityManager->flush();
+
+			$tool->dropSchema($metadata);
 			$this->entityManager->getConnection()->commit();
 		} catch (Exception $e) {
 			$this->entityManager->getConnection()->rollback();
@@ -102,19 +131,14 @@ class DoctrineInstaller extends BaseInstaller
 	 * @return array
 	 * @throws \Exception
 	 */
-	protected function prepare(IModule $module)
+	protected function getClasses(IModule $module)
 	{
-		if (!$this->context->hasService('doctrine') || !$this->context->doctrine->createCheckConnection()) {
-			throw new \Exception('Database connection not found!');
-		}
-
 		// find files
 		$robotLoader = new \Nette\Loaders\RobotLoader;
 		$robotLoader->setCacheStorage(new \Nette\Caching\Storages\MemoryStorage());
 		$robotLoader->addDirectory($module->getPath());
 		$robotLoader->register();
 		$entities = $robotLoader->getIndexedClasses();
-		$robotLoader->unregister();
 
 		// paths
 		$paths = array();
@@ -127,9 +151,43 @@ class DoctrineInstaller extends BaseInstaller
 		$classes = array();
 		foreach ($entities as $class => $item) {
 			if (\Nette\Reflection\ClassType::from($class)->hasAnnotation('Entity')) {
-				$classes[] = $this->entityManager->getClassMetadata($class);
+				$classes[] = $class;
 			}
 		}
+
+		$robotLoader->unregister();
+
+		return $classes;
+	}
+
+
+	/**
+	 * @param \Venne\Module\IModule $module
+	 * @return array
+	 * @throws \Exception
+	 */
+	protected function getAllClasses()
+	{
+		// find files
+		$robotLoader = new \Nette\Loaders\RobotLoader;
+		$robotLoader->setCacheStorage(new \Nette\Caching\Storages\MemoryStorage());
+		foreach ($this->context->parameters['modules'] as $name => $item) {
+			if ($item[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
+				$robotLoader->addDirectory($this->context->expand($item[ModuleManager::MODULE_PATH]) . '/' . ucfirst($name) . 'Module');
+			}
+		}
+		$robotLoader->register();
+		$entities = $robotLoader->getIndexedClasses();
+
+		// classes
+		$classes = array();
+		foreach ($entities as $class => $item) {
+			if (\Nette\Reflection\ClassType::from('\\' . $class)->hasAnnotation('Entity')) {
+				$classes[] = $class;
+			}
+		}
+
+		$robotLoader->unregister();
 
 		return $classes;
 	}
