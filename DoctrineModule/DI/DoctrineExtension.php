@@ -38,7 +38,7 @@ class DoctrineExtension extends CompilerExtension
 		'annotationReader' => array(
 			'namespace' => 'Doctrine\ORM\Mapping',
 		),
-		'proxiesDir' => '%appDir%/proxies',
+		'proxiesDir' => '%tempDir%/proxies',
 		'proxiesNamespace' => 'Proxies',
 		'mappingDriver' => 'annotation',
 	);
@@ -62,7 +62,7 @@ class DoctrineExtension extends CompilerExtension
 	/** @var array */
 	public $entityManagerDefaults = array(
 		'entityDirs' => array('%appDir%'),
-		'proxyDir' => '%appDir%/proxies',
+		'proxyDir' => '%tempDir%/proxies',
 		'proxyNamespace' => 'App\Model\Proxies',
 		'proxyAutogenerate' => NULL,
 		'useAnnotationNamespace' => FALSE,
