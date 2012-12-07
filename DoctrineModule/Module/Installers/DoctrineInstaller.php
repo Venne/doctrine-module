@@ -108,11 +108,11 @@ class DoctrineInstaller extends BaseInstaller
 		$this->entityManager->getConnection()->beginTransaction();
 		try {
 			foreach ($classes as $class) {
-				foreach ($this->entityManager->getRepository($class)->findAll() as $entity) {
-					$this->entityManager->remove($entity);
+				$repository = $this->entityManager->getRepository($class);
+				foreach ($repository->findAll() as $entity) {
+					$repository->delete($entity);
 				}
 			}
-			$this->entityManager->flush();
 
 			$tool->dropSchema($metadata);
 			$this->entityManager->getConnection()->commit();
