@@ -11,14 +11,12 @@
 
 namespace DoctrineModule\Forms\Containers;
 
-use Doctrine;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\UnitOfWork;
 use Venne;
 use Nette;
+use Doctrine;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\UnitOfWork;
 use Nette\ComponentModel\IContainer;
-use DoctrineModule\Forms\Containers\Doctrine\EntityContainer;
 use Venne\Forms\IObjectContainer;
 
 
@@ -86,7 +84,7 @@ class CollectionContainer extends \Kdyby\Extension\Forms\Replicator\Replicator i
 	 * @param  \Nette\ComponentModel\IContainer
 	 * @throws \Kdyby\InvalidStateException
 	 */
-	protected function validateParent(Nette\ComponentModel\IContainer $parent)
+	protected function validateParent(IContainer $parent)
 	{
 		parent::validateParent($parent);
 
