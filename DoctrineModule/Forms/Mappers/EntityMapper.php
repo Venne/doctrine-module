@@ -90,6 +90,9 @@ class EntityMapper extends Nette\Object implements \Venne\Forms\IMapper
 	 */
 	public function assign($entity, IComponent $component)
 	{
+		if ($entity instanceof \Doctrine\ORM\Proxy\Proxy) {
+			$entity->__load();
+		}
 		$this->entities->attach($entity, $component);
 	}
 
