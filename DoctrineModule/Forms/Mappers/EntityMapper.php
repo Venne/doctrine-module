@@ -533,8 +533,7 @@ class EntityMapper extends Nette\Object implements \Venne\Forms\IMapper
 	 */
 	public static function registerAliasMethod($name = 'bind')
 	{
-		BaseControl::extensionMethod($name, function (BaseControl $_this, $alias)
-		{
+		BaseControl::extensionMethod($name, function (BaseControl $_this, $alias) {
 			$form = $_this->getForm();
 			if ($form instanceof Form) {
 				/** @var \Kdyby\Doctrine\Forms\Form $form */
@@ -561,8 +560,7 @@ class EntityMapper extends Nette\Object implements \Venne\Forms\IMapper
 				throw new \Nette\InvalidArgumentException('Entity "' . $targetClass . '" has no property "' . $items . '".');
 			}
 
-			$items = function (\DoctrineModule\Repositories\BaseRepository $dao) use ($items, $key)
-			{
+			$items = function (\DoctrineModule\Repositories\BaseRepository $dao) use ($items, $key) {
 				return $dao->findPairs($items, $key);
 			};
 		} elseif (!is_callable($items)) {
@@ -612,8 +610,7 @@ class EntityMapper extends Nette\Object implements \Venne\Forms\IMapper
 	{
 		foreach (static::$itemControls as $classType) {
 			$refl = Nette\Reflection\ClassType::from($classType);
-			$refl->setExtensionMethod($name, function (BaseControl $_this, $mapper, $key = 'id')
-			{
+			$refl->setExtensionMethod($name, function (BaseControl $_this, $mapper, $key = 'id') {
 				$form = $_this->getForm();
 				if ($form instanceof Form) {
 					/** @var \Kdyby\Doctrine\Forms\Form $form */

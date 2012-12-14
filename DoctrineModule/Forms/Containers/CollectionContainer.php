@@ -50,7 +50,7 @@ class CollectionContainer extends \Kdyby\Extension\Forms\Replicator\Replicator i
 	public function __construct(Collection $collection, $factory, EntityMapper $mapper = NULL)
 	{
 		parent::__construct($factory);
-		$this->monitor('DoctrineModule\Forms\Form');
+		$this->monitor('Venne\Forms\Form');
 
 		$this->collection = $collection;
 		$this->mapper = $mapper;

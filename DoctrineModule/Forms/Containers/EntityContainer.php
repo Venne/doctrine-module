@@ -120,7 +120,7 @@ class EntityContainer extends Venne\Forms\Container implements IObjectContainer
 	/**
 	 * @return \Kdyby\Doctrine\Forms\EntityMapper
 	 */
-	private function getMapper()
+	public function getMapper()
 	{
 		return $this->mapper ? : $this->getForm()->getMapper();
 	}
@@ -141,37 +141,6 @@ class EntityContainer extends Venne\Forms\Container implements IObjectContainer
 
 			$this->getMapper()->assign($this->data, $this);
 		}
-	}
-
-
-
-	/**
-	 * @param string $name
-	 * @param object $entity
-	 *
-	 * @return \Kdyby\Doctrine\Forms\EntityContainer
-	 */
-	public function addOne($name, $entity = NULL)
-	{
-		$entity = $entity ? : $this->getMapper()->getRelated($this, $name);
-		return $this[$name] = new EntityContainer($entity);
-	}
-
-
-
-	/**
-	 * @param $name
-	 * @param $factory
-	 * @param int $createDefault
-	 *
-	 * @return \Kdyby\Doctrine\Forms\CollectionContainer
-	 */
-	public function addMany($name, $factory, $createDefault = 0)
-	{
-		$collection = $this->getMapper()->getCollection($this->data, $name);
-		$this[$name] = $container = new CollectionContainer($collection, $factory);
-		$container->createDefault = $createDefault;
-		return $container;
 	}
 
 }
