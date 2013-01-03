@@ -79,7 +79,7 @@ class ManyToOne extends BaseControl
 		if ($this->query) {
 			$items = $this->query->getQuery()->getResult();
 		} else {
-			$ref = $this->getParent()->data->getReflection()->getProperty($this->name)->getAnnotation($this->type);
+			$ref = $this->getParent()->data->getReflection()->getProperty($this->name)->getAnnotation('ORM\\' . $this->type);
 
 			$class = $ref["targetEntity"];
 			if (substr($class, 0, 1) != "\\") {

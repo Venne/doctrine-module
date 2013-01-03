@@ -12,6 +12,7 @@
 namespace DoctrineModule\Entities;
 
 use Venne;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @author Josef Kříž <pepakriz@gmail.com>
@@ -21,7 +22,7 @@ class NamedEntity extends IdentifiedEntity
 
 
 	/**
-	 * @Column(type="string")
+	 * @ORM\Column(type="string")
 	 */
 	protected $name;
 

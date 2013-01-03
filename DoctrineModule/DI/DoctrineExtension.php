@@ -178,8 +178,7 @@ class DoctrineExtension extends CompilerExtension
 			->setShared(false)
 			->setInternal(true);
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationReader'))
-			->setClass('Doctrine\Common\Annotations\SimpleAnnotationReader', array($this->configurationsPrefix('@' . $name . 'AnnotationRegistry')))
-			->addSetup("addNamespace", 'Doctrine\\ORM\\Mapping')
+			->setClass('Doctrine\Common\Annotations\AnnotationReader', array($this->configurationsPrefix('@' . $name . 'AnnotationRegistry')))
 			->setShared(false)
 			->setInternal(true);
 		$container->addDefinition($this->configurationsPrefix($name . 'CachedAnnotationReader'))

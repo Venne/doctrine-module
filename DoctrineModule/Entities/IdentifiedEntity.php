@@ -12,6 +12,7 @@
 namespace DoctrineModule\Entities;
 
 use Nette\Object;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @author Josef Kříž <pepakriz@gmail.com>
@@ -21,9 +22,9 @@ class IdentifiedEntity extends BaseEntity implements IEntity
 
 
 	/**
-	 * @Id
-	 * @Column(type="integer")
-	 * @GeneratedValue
+	 * @ORM\Id
+	 * @ORM\Column(type="integer")
+	 * @ORM\GeneratedValue
 	 */
 	protected $id;
 

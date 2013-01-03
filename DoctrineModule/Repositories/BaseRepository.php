@@ -115,7 +115,7 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 	/**
 	 * @param boolean $withoutFlush
 	 */
-	protected function flush($withoutFlush)
+	protected function flush($withoutFlush = self::FLUSH)
 	{
 		if ($withoutFlush === BaseRepository::FLUSH) {
 			try {
