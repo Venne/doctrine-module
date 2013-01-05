@@ -150,7 +150,7 @@ class DoctrineInstaller extends BaseInstaller
 		// classes
 		$classes = array();
 		foreach ($entities as $class => $item) {
-			if (\Nette\Reflection\ClassType::from($class)->hasAnnotation('Entity')) {
+			if (\Nette\Reflection\ClassType::from($class)->hasAnnotation('ORM\Entity')) {
 				$classes[] = $class;
 			}
 		}
@@ -185,7 +185,7 @@ class DoctrineInstaller extends BaseInstaller
 		// classes
 		$classes = array();
 		foreach ($entities as $class => $item) {
-			if (\Nette\Reflection\ClassType::from('\\' . $class)->hasAnnotation('Entity')) {
+			if (\Nette\Reflection\ClassType::from('\\' . $class)->hasAnnotation('ORM\Entity')) {
 				$classes[] = $class;
 			}
 		}
