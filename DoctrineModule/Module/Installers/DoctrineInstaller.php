@@ -173,7 +173,10 @@ class DoctrineInstaller extends BaseInstaller
 		$robotLoader->setCacheStorage(new \Nette\Caching\Storages\MemoryStorage());
 		foreach ($this->context->parameters['modules'] as $name => $item) {
 			if ($item[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
-				$robotLoader->addDirectory($this->context->expand($item[ModuleManager::MODULE_PATH]) . '/' . ucfirst($name) . 'Module');
+				$path = $this->context->expand($item[ModuleManager::MODULE_PATH]) . '/' . ucfirst($name) . 'Module';
+				if (file_exists($path)) {
+					$robotLoader->addDirectory($path);
+				}
 			}
 		}
 		$robotLoader->register();
