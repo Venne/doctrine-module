@@ -103,8 +103,8 @@ class DoctrineExtension extends CompilerExtension
 		$container->addDefinition("doctrinePanel")
 			->setClass("DoctrineModule\Diagnostics\Panel")
 			->setFactory("DoctrineModule\Diagnostics\Panel::register")
-			->setShared(false)
-			->setAutowired(false);
+			->setShared(FALSE)
+			->setAutowired(FALSE);
 
 		//if ($config["debugger"] == "development") {
 		//	$container->getDefinition("entityManagerConfig")
@@ -160,7 +160,7 @@ class DoctrineExtension extends CompilerExtension
 
 		$container->addDefinition($this->prefix('checkConnection'))
 			->setFactory("DoctrineModule\DI\DoctrineExtension::checkConnection")
-			->setShared(false);
+			->setShared(FALSE);
 
 		$container->addDefinition($this->prefix("entityFormMapper"))
 			->setClass("DoctrineModule\Forms\Mappers\EntityMapper", array("@entityManager"));
@@ -175,21 +175,21 @@ class DoctrineExtension extends CompilerExtension
 
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationRegistry'))
 			->setFactory("Doctrine\Common\Annotations\AnnotationRegistry::registerFile", array(dirname(ClassType::from('Doctrine\ORM\Version')->getFileName()) . '/Mapping/Driver/DoctrineAnnotations.php'))
-			->setShared(false)
-			->setInternal(true);
+			->setShared(FALSE)
+			->setInternal(TRUE);
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationReader'))
 			->setClass('Doctrine\Common\Annotations\AnnotationReader', array($this->configurationsPrefix('@' . $name . 'AnnotationRegistry')))
-			->setShared(false)
-			->setInternal(true);
+			->setShared(FALSE)
+			->setInternal(TRUE);
 		$container->addDefinition($this->configurationsPrefix($name . 'CachedAnnotationReader'))
 			->setClass("Doctrine\Common\Annotations\CachedReader", array($this->configurationsPrefix('@' . $name . 'AnnotationReader'), "@doctrine.cache"))
-			->setInternal(true);
+			->setInternal(TRUE);
 
 		$paths = array();
 		foreach ($container->parameters['modules'] as $module) {
 			if ($module[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
 				foreach (\Nette\Utils\Finder::findFiles('Entities/*.php')->from($module[ModuleManager::MODULE_PATH]) as $file) {
-					$paths[$file->getPath()] = true;
+					$paths[$file->getPath()] = TRUE;
 				}
 			}
 		}
@@ -197,21 +197,21 @@ class DoctrineExtension extends CompilerExtension
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationDriver'))
 			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), array_keys($paths)))
 			->addSetup('setFileExtension', '.php')
-			->setInternal(true);
+			->setInternal(TRUE);
 
 
 		$paths = array();
 		foreach ($container->parameters['modules'] as $module) {
 			if ($module[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
 				foreach (\Nette\Utils\Finder::findFiles('*.dcm.yml')->from($module[ModuleManager::MODULE_PATH]) as $file) {
-					$paths[$file->getPath()] = true;
+					$paths[$file->getPath()] = TRUE;
 				}
 			}
 		}
 
 		$container->addDefinition($this->configurationsPrefix($name . 'YmlDriver'))
 			->setClass("Doctrine\ORM\Mapping\Driver\YamlDriver", array(array_keys($paths)))
-			->setInternal(true);
+			->setInternal(TRUE);
 
 
 		$container->addDefinition($this->configurationsPrefix($name))
@@ -221,11 +221,11 @@ class DoctrineExtension extends CompilerExtension
 			->addSetup("setMetadataDriverImpl", $this->configurationsPrefix('@' . $name . ucfirst($config['mappingDriver']) . 'Driver'))
 			->addSetup("setProxyDir", $config['proxiesDir'])
 			->addSetup("setProxyNamespace", $config['proxiesNamespace'])
-			->setInternal(true);
+			->setInternal(TRUE);
 
 		if ($container->parameters["debugMode"]) {
 			$container->getDefinition($this->configurationsPrefix($name))
-				->addSetup("setAutoGenerateProxyClasses", true);
+				->addSetup("setAutoGenerateProxyClasses", TRUE);
 		}
 	}
 
@@ -307,11 +307,11 @@ class DoctrineExtension extends CompilerExtension
 		$container->addDefinition($this->entityManagersPrefix($name))
 			->setClass("Doctrine\ORM\EntityManager")
 			->setFactory("\Doctrine\ORM\EntityManager::create", array(
-				$this->connectionsPrefix('@' . $config['connection']),
-				$this->configurationsPrefix('@' . $name),
-				$this->eventManagersPrefix('@' . $name)
-			)
-		);
+					$this->connectionsPrefix('@' . $config['connection']),
+					$this->configurationsPrefix('@' . $name),
+					$this->eventManagersPrefix('@' . $name)
+				)
+			);
 	}
 
 
@@ -388,24 +388,24 @@ class DoctrineExtension extends CompilerExtension
 	public static function checkConnection(\Nette\DI\Container $context, \Doctrine\ORM\EntityManager $entityManager)
 	{
 		if (self::$isConnected === NULL) {
-			$ret = true;
+			$ret = (object)array('val' => TRUE);
 			$connection = $entityManager->getConnection();
-			$old = set_error_handler(function () use (& $ret) {
-				$ret = false;
+			$old = set_error_handler(function () use ($ret) {
+				$ret->val = FALSE;
 			});
 
 			try {
 				$c = $connection->connect();
 				if (!is_bool($c)) {
-					$ret = false;
+					$ret->val = FALSE;
 				}
 				$connection->getSchemaManager()->tablesExist('user'); // try connect with some sql
 			} catch (\Exception $ex) {
-				$ret = false;
+				$ret->val = FALSE;
 			}
 
 			set_error_handler($old);
-			self::$isConnected = $ret;
+			self::$isConnected = $ret->val;
 		}
 
 		return self::$isConnected;
@@ -437,7 +437,7 @@ class DoctrineExtension extends CompilerExtension
 			$anot = $refl->getAnnotation("Entity");
 			$definition->setFactory("@entityManager::getRepository", array("\\" . $definition->class));
 			$definition->class = substr($anot["repositoryClass"], 0, 1) == "\\" ? substr($anot["repositoryClass"], 1) : $anot["repositoryClass"];
-			$definition->setAutowired(false);
+			$definition->setAutowired(FALSE);
 		}
 	}
 

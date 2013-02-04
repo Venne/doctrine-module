@@ -78,6 +78,9 @@ class DoctrineExtension extends Object implements IControlExtension
 
 		$collection = $form->getMapper()->getCollection($form->getData(), $name);
 		$form[$name] = $control = new \DoctrineModule\Forms\Containers\CollectionContainer($collection, $containerFactory);
+		if ($entityFactory) {
+			$control->setEntityFactory($entityFactory);
+		}
 		$control->containerClass = 'DoctrineModule\Forms\Containers\EntityContainer';
 		return $control;
 	}

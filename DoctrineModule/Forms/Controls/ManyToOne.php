@@ -25,7 +25,7 @@ class ManyToOne extends BaseControl
 	protected $items = array();
 
 	/** @var bool */
-	protected $itemsLoaded = false;
+	protected $itemsLoaded = FALSE;
 
 	/** @var array */
 	protected $allowed = array();
@@ -133,7 +133,7 @@ class ManyToOne extends BaseControl
 	{
 		if (!$this->itemsLoaded) {
 			$this->loadEntities();
-			$this->itemsLoaded = true;
+			$this->itemsLoaded = TRUE;
 		}
 
 		foreach ($this->items as $item) {
@@ -167,7 +167,7 @@ class ManyToOne extends BaseControl
 	{
 		if (!$this->itemsLoaded) {
 			$this->loadEntities();
-			$this->itemsLoaded = true;
+			$this->itemsLoaded = TRUE;
 		}
 
 		$control = parent::getControl();
@@ -339,7 +339,7 @@ class ManyToOne extends BaseControl
 	public function setCriteria($criteria)
 	{
 		$this->criteria = $criteria;
-		$this->itemsLoaded = false;
+		$this->itemsLoaded = FALSE;
 		return $this;
 	}
 
@@ -359,7 +359,7 @@ class ManyToOne extends BaseControl
 	public function setOffset($offset)
 	{
 		$this->offset = $offset;
-		$this->itemsLoaded = false;
+		$this->itemsLoaded = FALSE;
 		return $this;
 	}
 
@@ -379,7 +379,7 @@ class ManyToOne extends BaseControl
 	public function setOrderBy($orderBy)
 	{
 		$this->orderBy = $orderBy;
-		$this->itemsLoaded = false;
+		$this->itemsLoaded = FALSE;
 		return $this;
 	}
 
@@ -399,7 +399,7 @@ class ManyToOne extends BaseControl
 	public function setLimit($limit)
 	{
 		$this->limit = $limit;
-		$this->itemsLoaded = false;
+		$this->itemsLoaded = FALSE;
 		return $this;
 	}
 
@@ -419,7 +419,7 @@ class ManyToOne extends BaseControl
 	public function setQuery($query)
 	{
 		$this->query = $query;
-		$this->itemsLoaded = false;
+		$this->itemsLoaded = FALSE;
 		return $this;
 	}
 
@@ -438,14 +438,14 @@ class ManyToOne extends BaseControl
 	 * @param $name
 	 * @return ManyToOne
 	 */
-	public function  setDependOn(\Nette\Forms\IControl $control, $name)
+	public function  setDependOn(\Nette\Forms\IControl $control, $name = NULL)
 	{
 		$_this = $this;
-		$this->dependOn = array($control, $name);
+		$this->dependOn = array($control, $name ? : $control->name);
 
 		$this->criteria = array($name => -1);
 
-		$this->form->addSubmit($this->name . '_reload', 'reload');
+		$this->form->addSubmit($this->name . '_reload', 'reload')->setValidationScope(FALSE);
 
 		$control->form->onBeforeRender[] = function ($form) use ($_this, $control) {
 			$control->getControlPrototype()->onChange = "$('#frm{$form->name}-{$_this->name}_reload').click();";
