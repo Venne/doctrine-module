@@ -27,6 +27,21 @@ class DoctrineExtension extends CompilerExtension
 	/** @var bool */
 	protected static $isConnected;
 
+	const CACHE_CLASS_NETTE = 'DoctrineModule\Cache';
+
+	const CACHE_CLASS_APC = 'Doctrine\Common\Cache\ApcCache';
+
+	const CACHE_CLASS_XCACHE = 'Doctrine\Common\Cache\XcacheCache';
+
+	const CACHE_CLASS_ARRAY = 'Doctrine\Common\Cache\ArrayCache';
+
+	protected static $caches = array(
+		self::CACHE_CLASS_NETTE => 'Nette cache',
+		self::CACHE_CLASS_APC => 'APC cache',
+		self::CACHE_CLASS_XCACHE => 'XCache',
+		self::CACHE_CLASS_ARRAY => 'Array cache',
+	);
+
 	const CONNECTIONS_PREFIX = 'connections',
 		ENTITY_MANAGERS_PREFIX = 'entityManagers',
 		SCHEMA_MANAGERS_PREFIX = 'schemaManagers',
@@ -74,6 +89,7 @@ class DoctrineExtension extends CompilerExtension
 	/** @var array */
 	public $defaults = array(
 		'debugger' => TRUE,
+		'cacheClass' => 'DoctrineModule\Cache',
 	);
 
 	/** @var array */
@@ -96,9 +112,10 @@ class DoctrineExtension extends CompilerExtension
 		$config = $this->getConfig($this->defaults);
 
 		// Cache
-		$container->addDefinition($this->prefix("cache"))
-			->setInternal(true)
-			->setClass("DoctrineModule\Cache", array('@cacheStorage'));
+		$cache = $container->addDefinition($this->prefix("cache"))
+			->setInternal(TRUE)
+			->setClass($config['cacheClass'])
+			->addSetup('$service->setNamespace(?)', array(md5(__DIR__)));
 
 		$container->addDefinition("doctrinePanel")
 			->setClass("DoctrineModule\Diagnostics\Panel")
@@ -475,6 +492,12 @@ class DoctrineExtension extends CompilerExtension
 			}
 		}
 		return $ret;
+	}
+
+
+	public static function getCaches()
+	{
+		return self::$caches;
 	}
 }
 
