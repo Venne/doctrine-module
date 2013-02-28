@@ -14,7 +14,7 @@ namespace DoctrineModule\DI;
 use Venne;
 use Nette\Reflection\ClassType;
 use Nette\DI\ContainerBuilder;
-use Nette\Config\CompilerExtension;
+use Venne\Config\CompilerExtension;
 use Nette\Utils\Strings;
 use Venne\Module\ModuleManager;
 
@@ -431,31 +431,7 @@ class DoctrineExtension extends CompilerExtension
 
 	public function beforeCompile()
 	{
-		$container = $this->getContainerBuilder();
-
-		$this->prepareRepositories();
 		$this->registerListeners();
-	}
-
-
-	protected function prepareRepositories()
-	{
-		$container = $this->getContainerBuilder();
-
-		foreach ($container->findByTag("repository") as $name => $repository) {
-
-			$definition = $container->getDefinition($name);
-			$refl = \Nette\Reflection\ClassType::from($definition->class);
-
-			if (!$refl->isSubclassOf("\\DoctrineModule\\Entities\\IEntity") && $refl->hasAnnotation("Entity")) {
-				throw new \Nette\DI\ServiceCreationException("Class {$definition->class} is not instance of entity");
-			}
-
-			$anot = $refl->getAnnotation("Entity");
-			$definition->setFactory("@entityManager::getRepository", array("\\" . $definition->class));
-			$definition->class = substr($anot["repositoryClass"], 0, 1) == "\\" ? substr($anot["repositoryClass"], 1) : $anot["repositoryClass"];
-			$definition->setAutowired(FALSE);
-		}
 	}
 
 
@@ -464,34 +440,9 @@ class DoctrineExtension extends CompilerExtension
 		$container = $this->getContainerBuilder();
 		$evm = $container->getDefinition('doctrine.eventManagers.default');
 
-		foreach ($this->getSortedServices($container, "listener") as $item) {
+		foreach ($this->getSortedServices("listener") as $item) {
 			$evm->addSetup("addEventSubscriber", "@{$item}");
 		}
-	}
-
-
-	/**
-	 * @param \Nette\DI\ContainerBuilder $container
-	 * @param $tag
-	 * @return array
-	 */
-	protected function getSortedServices(ContainerBuilder $container, $tag)
-	{
-		$items = array();
-		$ret = array();
-		foreach ($container->findByTag($tag) as $route => $meta) {
-			$priority = isset($meta['priority']) ? $meta['priority'] : (int)$meta;
-			$items[$priority][] = $route;
-		}
-
-		krsort($items);
-
-		foreach ($items as $items2) {
-			foreach ($items2 as $item) {
-				$ret[] = $item;
-			}
-		}
-		return $ret;
 	}
 
 
