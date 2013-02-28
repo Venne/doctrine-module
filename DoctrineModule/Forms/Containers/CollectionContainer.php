@@ -25,7 +25,7 @@ use Venne\Forms\IObjectContainer;
  * @method \Kdyby\Doctrine\Forms\Form getForm(bool $need = TRUE)
  * @method \Kdyby\Doctrine\Forms\Form|\Kdyby\Doctrine\Forms\EntityContainer getParent()
  */
-class CollectionContainer extends \Kdyby\Extension\Forms\Replicator\Replicator implements IObjectContainer
+class CollectionContainer extends \Kdyby\Replicator\Container implements IObjectContainer
 {
 
 	/** @var string */
