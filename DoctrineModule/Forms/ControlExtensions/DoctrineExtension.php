@@ -11,7 +11,7 @@
 
 namespace DoctrineModule\Forms\ControlExtensions;
 
-use Venne;
+use Kdyby\Replicator\Container;
 use Nette\Object;
 use Venne\Forms\IControlExtension;
 use Venne\Forms\Form;
@@ -74,7 +74,7 @@ class DoctrineExtension extends Object implements IControlExtension
 	 */
 	public function addMany($form, $name, $containerFactory, $entityFactory = NULL)
 	{
-		\Kdyby\Extension\Forms\Replicator\Replicator::register();
+		Container::register();
 
 		$collection = $form->getMapper()->getCollection($form->getData(), $name);
 		$form[$name] = $control = new \DoctrineModule\Forms\Containers\CollectionContainer($collection, $containerFactory);
