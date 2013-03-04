@@ -41,8 +41,8 @@ class DoctrineInstaller extends BaseInstaller
 
 
 	/**
-	 * @param Nette\DI\Container $context
-	 * @param Doctrine\ORM\EntityManager $entityManager
+	 * @param \Nette\DI\Container $context
+	 * @param \Doctrine\ORM\EntityManager $entityManager
 	 */
 	public function __construct(Container $context, EntityManager $entityManager)
 	{
