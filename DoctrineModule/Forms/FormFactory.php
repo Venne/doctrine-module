@@ -56,7 +56,7 @@ class FormFactory extends \Venne\Forms\FormFactory
 		if ($form->hasSaveButton() && $form->isSubmitted() === $form->getSaveButton()) {
 			try {
 				$this->mapper->entityManager->getRepository(get_class($form->data))->save($form->data);
-			} catch (\DoctrineModule\SqlException $e) {
+			} catch (\Exception $e) {
 				$ok = true;
 
 				if (is_array($this->onCatchError) || $this->onCatchError instanceof \Traversable) {
