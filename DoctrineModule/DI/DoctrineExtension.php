@@ -285,6 +285,10 @@ class DoctrineExtension extends CompilerExtension
 			->setClass('Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand')
 			->addTag('command')
 			->setAutowired(FALSE);
+		$container->addDefinition($this->prefix('consoleCommandValidateSchema'))
+			->setClass('Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand')
+			->addTag('command')
+			->setAutowired(FALSE);
 
 		// Helpers
 		$container->addDefinition($this->prefix('entityManagerHelper'))
