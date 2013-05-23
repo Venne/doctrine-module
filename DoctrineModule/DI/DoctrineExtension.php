@@ -90,6 +90,16 @@ class DoctrineExtension extends CompilerExtension
 	public $defaults = array(
 		'debugger' => TRUE,
 		'cacheClass' => 'DoctrineModule\Cache',
+		'configurations' => array('default' => array()),
+		'eventManagers' => array('default' => array()),
+		'schemaManagers' => array('default' => array()),
+		'entityManagers' => array(
+			'default' => array(
+				'connection' => 'default'
+			)
+		),
+		'connections' => array('default' => array()),
+		'console' => array('entityManager' => 'default'),
 	);
 
 	/** @var array */
@@ -108,7 +118,13 @@ class DoctrineExtension extends CompilerExtension
 
 	public function loadConfiguration()
 	{
+		$this->compiler->parseServices(
+			$this->getContainerBuilder(),
+			$this->loadFromFile(dirname(dirname(__DIR__)) . '/Resources/config/doctrine.neon')
+		);
+
 		$container = $this->getContainerBuilder();
+		$this->defaults['connections']['default'] = $container->parameters['database'];
 		$config = $this->getConfig($this->defaults);
 
 		// Cache

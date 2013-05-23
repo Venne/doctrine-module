@@ -1,31 +1,3 @@
-parameters:
-	database:
-		driver: pdo_sqlite
-		path: %appDir%/models/db.sqlite
-
-doctrine:
-	configurations:
-		default: []
-
-	eventManagers:
-		default: []
-
-	schemaManagers:
-		default: []
-
-	connections:
-		default: %database%
-
-	entityManagers:
-		default:
-			connection: default
-
-	console:
-		entityManager: default
-
-	migrations:
-		connection: @doctrine.connections.default
-
 services:
 	entityManager: @doctrine.entityManagers.default
 	eventManager: @doctrine.eventManagers.default
