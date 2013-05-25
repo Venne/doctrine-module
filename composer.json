@@ -43,10 +43,7 @@
 				},
 				"extensions":{
 					"doctrine":"DoctrineModule\\DI\\DoctrineExtension"
-				},
-				"includes":[
-					"%modules.doctrine.path%/Resources/config/doctrine.neon"
-				]
+				}
 			}
 		}
 	}
