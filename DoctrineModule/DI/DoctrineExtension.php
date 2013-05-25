@@ -221,7 +221,7 @@ class DoctrineExtension extends CompilerExtension
 		$paths = array();
 		foreach ($container->parameters['modules'] as $module) {
 			if ($module[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
-				foreach (\Nette\Utils\Finder::findFiles('Entities/*.php')->from($module[ModuleManager::MODULE_PATH]) as $file) {
+				foreach (\Nette\Utils\Finder::findFiles('Entities/*.php')->from($module[ModuleManager::MODULE_PATH])->exclude('vendor/*') as $file) {
 					$paths[$file->getPath()] = TRUE;
 				}
 			}
@@ -236,7 +236,7 @@ class DoctrineExtension extends CompilerExtension
 		$paths = array();
 		foreach ($container->parameters['modules'] as $module) {
 			if ($module[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
-				foreach (\Nette\Utils\Finder::findFiles('*.dcm.yml')->from($module[ModuleManager::MODULE_PATH]) as $file) {
+				foreach (\Nette\Utils\Finder::findFiles('*.dcm.yml')->from($module[ModuleManager::MODULE_PATH])->exclude('vendor/*') as $file) {
 					$paths[$file->getPath()] = TRUE;
 				}
 			}
