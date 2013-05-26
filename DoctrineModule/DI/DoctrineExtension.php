@@ -191,8 +191,12 @@ class DoctrineExtension extends CompilerExtension
 			$this->processEntityManager($name, $cfg);
 		}
 
+		$container->addDefinition($this->prefix('checkConnectionClass'))
+			->setClass('DoctrineModule\DI\ConnectionChecker')
+			->setInternal(TRUE);
+
 		$container->addDefinition($this->prefix('checkConnection'))
-			->setFactory("DoctrineModule\DI\DoctrineExtension::checkConnection")
+			->setFactory("@doctrine.checkConnectionClass::checkConnection")
 			->setShared(FALSE);
 
 		$container->addDefinition($this->prefix("entityFormMapper"))
