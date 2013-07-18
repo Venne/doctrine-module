@@ -11,11 +11,11 @@
 
 namespace DoctrineModule\DI;
 
-use Venne;
-use Nette\Reflection\ClassType;
 use Nette\DI\ContainerBuilder;
-use Venne\Config\CompilerExtension;
+use Nette\Reflection\ClassType;
 use Nette\Utils\Strings;
+use Venne;
+use Venne\Config\CompilerExtension;
 use Venne\Module\ModuleManager;
 
 /**
@@ -35,11 +35,18 @@ class DoctrineExtension extends CompilerExtension
 
 	const CACHE_CLASS_ARRAY = 'Doctrine\Common\Cache\ArrayCache';
 
+	const CACHE_CLASS_REDIS = 'Doctrine\Common\Cache\RedisCache';
+
+	const CACHE_CLASS_MEMCACHE = 'Doctrine\Common\Cache\MemcacheCache';
+
+	/** @var array */
 	protected static $caches = array(
 		self::CACHE_CLASS_NETTE => 'Nette cache',
 		self::CACHE_CLASS_APC => 'APC cache',
-		self::CACHE_CLASS_XCACHE => 'XCache',
+		self::CACHE_CLASS_XCACHE => 'XCache cache',
 		self::CACHE_CLASS_ARRAY => 'Array cache',
+		self::CACHE_CLASS_REDIS => 'Redis cache',
+		self::CACHE_CLASS_MEMCACHE => 'Memcache cache',
 	);
 
 	const CONNECTIONS_PREFIX = 'connections',
@@ -90,6 +97,10 @@ class DoctrineExtension extends CompilerExtension
 	public $defaults = array(
 		'debugger' => TRUE,
 		'cacheClass' => 'DoctrineModule\Cache',
+		'cacheRedisHost' => 'localhost',
+		'cacheRedisPort' => 6379,
+		'cacheMemcacheHost' => '127.0.0.1',
+		'cacheMemcachePort' => 11211,
 		'configurations' => array('default' => array()),
 		'eventManagers' => array('default' => array()),
 		'schemaManagers' => array('default' => array()),
@@ -128,16 +139,22 @@ class DoctrineExtension extends CompilerExtension
 		$config = $this->getConfig($this->defaults);
 
 		// Cache
-		$cache = $container->addDefinition($this->prefix("cache"))
+		$cache = $container->addDefinition($this->prefix('cache'))
 			->setInternal(TRUE)
 			->setClass($config['cacheClass'])
 			->addSetup('$service->setNamespace(?)', array(md5(__DIR__)));
 
-		$container->addDefinition("doctrinePanel")
-			->setClass("DoctrineModule\Diagnostics\Panel")
-			->setFactory("DoctrineModule\Diagnostics\Panel::register")
-			->setShared(FALSE)
-			->setAutowired(FALSE);
+		if ($config['cacheClass'] === self::CACHE_CLASS_REDIS) {
+			$container->addDefinition($this->prefix('redis'))
+				->setClass('Redis')
+				->addSetup('connect', array($config['cacheRedisHost'], $config['cacheRedisPort']));
+			$cache->addSetup('setRedis', array('@' . $this->prefix('redis')));
+		} elseif ($config['cacheClass'] === self::CACHE_CLASS_MEMCACHE) {
+			$container->addDefinition($this->prefix('memcache'))
+				->setClass('Memcache')
+				->addSetup('addServer', array($config['cacheMemcacheHost'], $config['cacheMemcachePort']));
+			$cache->addSetup('setMemcache', array('@' . $this->prefix('memcache')));
+		}
 
 		//if ($config["debugger"] == "development") {
 		//	$container->getDefinition("entityManagerConfig")
@@ -225,7 +242,7 @@ class DoctrineExtension extends CompilerExtension
 		$paths = array();
 		foreach ($container->parameters['modules'] as $module) {
 			if ($module[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
-				foreach (\Nette\Utils\Finder::findFiles('Entities/*.php')->from($module[ModuleManager::MODULE_PATH])->exclude('vendor/*') as $file) {
+				foreach (\Nette\Utils\Finder::findFiles('*Entity.php')->from($module[ModuleManager::MODULE_PATH])->exclude('vendor/*')->exclude('tests/*') as $file) {
 					$paths[$file->getPath()] = TRUE;
 				}
 			}
@@ -361,8 +378,9 @@ class DoctrineExtension extends CompilerExtension
 		$container = $this->getContainerBuilder();
 
 		$container->addDefinition($this->connectionsPrefix($name))
-			->setClass("Doctrine\DBAL\Connection")
-			->setFactory("Doctrine\DBAL\DriverManager::getConnection", array($config, $config['eventManager']));
+			->setClass('Doctrine\DBAL\Connection')
+			->setFactory('Doctrine\DBAL\DriverManager::getConnection', array($config, $config['eventManager']))
+			->addSetup('$panel = new DoctrineModule\Diagnostics\ConnectionPanel; $panel->setConnection($service); $service->getConfiguration()->setSQLLogger($panel); Nette\Diagnostics\Debugger::$bar->addPanel($panel); ? ', array(''));
 	}
 
 
