@@ -272,6 +272,9 @@ class EntityMapper extends Nette\Object implements \Venne\Forms\IMapper
 					} else {
 						$class->setFieldValue($entity, $field, $value);
 					}
+				} elseif (Objects::hasProperty($entity, $field)) {
+					Objects::setProperty($entity, $field, $value);
+					continue;
 				}
 			}
 		}
