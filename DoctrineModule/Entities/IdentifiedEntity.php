@@ -11,7 +11,6 @@
 
 namespace DoctrineModule\Entities;
 
-use Nette\Object;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
