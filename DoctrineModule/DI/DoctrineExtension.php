@@ -327,6 +327,32 @@ class DoctrineExtension extends CompilerExtension
 			->addTag('command')
 			->setAutowired(FALSE);
 
+		// console commands - DBAL
+		$container->addDefinition($this->prefix('consoleCommandDBALDiff'))
+			->setClass('Doctrine\DBAL\Migrations\Tools\Console\Command\DiffCommand')
+			->addTag('command')
+			->setAutowired(FALSE);
+		$container->addDefinition($this->prefix('consoleCommandDBALExecute'))
+			->setClass('Doctrine\DBAL\Migrations\Tools\Console\Command\ExecuteCommand')
+			->addTag('command')
+			->setAutowired(FALSE);
+		$container->addDefinition($this->prefix('consoleCommandDBALGenerate'))
+			->setClass('Doctrine\DBAL\Migrations\Tools\Console\Command\GenerateCommand')
+			->addTag('command')
+			->setAutowired(FALSE);
+		$container->addDefinition($this->prefix('consoleCommandDBALMigrate'))
+			->setClass('Doctrine\DBAL\Migrations\Tools\Console\Command\MigrateCommand')
+			->addTag('command')
+			->setAutowired(FALSE);
+		$container->addDefinition($this->prefix('consoleCommandDBALStatus'))
+			->setClass('Doctrine\DBAL\Migrations\Tools\Console\Command\StatusCommand')
+			->addTag('command')
+			->setAutowired(FALSE);
+		$container->addDefinition($this->prefix('consoleCommandDBALVersion'))
+			->setClass('Doctrine\DBAL\Migrations\Tools\Console\Command\VersionCommand')
+			->addTag('command')
+			->setAutowired(FALSE);
+
 		// Helpers
 		$container->addDefinition($this->prefix('entityManagerHelper'))
 			->setClass('Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper', array('@entityManager'))
