@@ -16,6 +16,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @author Josef Kříž <pepakriz@gmail.com>
+ *
+ * @property string $name
  */
 class NamedEntity extends IdentifiedEntity
 {
