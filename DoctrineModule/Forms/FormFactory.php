@@ -11,8 +11,9 @@
 
 namespace DoctrineModule\Forms;
 
-use Venne;
+use Doctrine\DBAL\DBALException;
 use DoctrineModule\Forms\Mappers\EntityMapper;
+use Nette\InvalidArgumentException;
 use Venne\Forms\Form;
 
 /**
@@ -68,13 +69,25 @@ class FormFactory extends \Venne\Forms\FormFactory
 					}
 				} elseif ($this->onCatchError !== NULL) {
 					$class = get_class($this);
-					throw new \Nette\UnexpectedValueException("Property $class::onCatchError must be array or NULL, " . gettype($_this->$name) . " given.");
+					throw new \Nette\UnexpectedValueException("Property $class::onCatchError must be array or NULL, " . gettype($this->onCatchError) . " given.");
 				}
 
 				if ($ok) {
 					throw $e;
 				}
 			}
+		}
+	}
+
+
+	public function handleCatchError(Form $form, $e)
+	{
+		if ($e instanceof InvalidArgumentException) {
+			$form->addError($e->getMessage());
+			return TRUE;
+		} else if ($e instanceof DBALException && strpos($e->getMessage(), 'Duplicate entry') !== false) {
+			$form->addError('Duplicate entry');
+			return TRUE;
 		}
 	}
 
