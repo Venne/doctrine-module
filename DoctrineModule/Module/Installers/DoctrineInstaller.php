@@ -72,7 +72,6 @@ class DoctrineInstaller extends BaseInstaller
 		$tool = new \Doctrine\ORM\Tools\SchemaTool($this->entityManager);
 		$this->entityManager->getConnection()->beginTransaction();
 		try {
-			$tool->createSchema($metadata);
 			foreach ($this->getAllClasses() as $class) {
 				$metadata[] = $this->entityManager->getClassMetadata($class);
 			}
@@ -142,8 +141,8 @@ class DoctrineInstaller extends BaseInstaller
 
 		// paths
 		$paths = array();
-		foreach (\Nette\Utils\Finder::findDirectories('Entities')->from($module->getPath()) as $file) {
-			$paths[] = $file->getPath() . '/Entities';
+		foreach (\Nette\Utils\Finder::findFiles('*Entity.php')->from($module->getPath())->exclude('vendor/*')->exclude('tests/*') as $file) {
+			$paths[] = $file->getPath();
 		}
 		$this->entityManager->getConfiguration()->getMetadataDriverImpl()->addPaths($paths);
 
