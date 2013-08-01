@@ -198,11 +198,7 @@ class DoctrineInstaller extends BaseInstaller
 
 	protected function cleanCache()
 	{
-		if (function_exists("apc_fetch")) {
-			\apc_clear_cache();
-			\apc_clear_cache('user');
-			\apc_clear_cache('opcode');
-		}
+		$this->entityManager->getConfiguration()->getMetadataCacheImpl()->deleteAll();
 	}
 }
 
