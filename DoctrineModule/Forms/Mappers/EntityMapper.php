@@ -369,6 +369,9 @@ class EntityMapper extends Nette\Object implements \Venne\Forms\IMapper
 			throw new \Nette\InvalidStateException('Requested field ' . get_class($entity) . '::$' . $field . ' is collection association.');
 		}
 
+		if ($entity instanceof Doctrine\ORM\Proxy\Proxy) {
+			$entity->__load();
+		}
 		$related = $this->getMeta($entity)->getFieldValue($entity, $field);
 		$relatedEntity = $this->getTargetClassName($entity, $field);
 		if (!$related instanceof $relatedEntity) {
@@ -414,6 +417,9 @@ class EntityMapper extends Nette\Object implements \Venne\Forms\IMapper
 			throw new \Nette\InvalidStateException('Requested field ' . get_class($entity) . '::$' . $field . ' is single entity associates.');
 		}
 
+		if ($entity instanceof Doctrine\ORM\Proxy\Proxy) {
+			$entity->__load();
+		}
 		$related = $this->getMeta($entity)->getFieldValue($entity, $field);
 		if (!$related instanceof Collection) {
 			$related = new Doctrine\Common\Collections\ArrayCollection();
