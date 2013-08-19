@@ -48,9 +48,7 @@ class ConnectionChecker extends Object
 					$ret->val = FALSE;
 				}
 
-				if ($connection->getDriver() instanceof \Doctrine\DBAL\Driver\PDOSqlite\Driver) {
-					$connection->getSchemaManager()->tablesExist('user'); // try connect with some sql
-				}
+				$connection->getSchemaManager()->tablesExist('user'); // try connect with some sql
 			} catch (\Exception $ex) {
 				$ret->val = FALSE;
 			}
