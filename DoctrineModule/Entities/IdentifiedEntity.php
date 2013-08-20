@@ -15,8 +15,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @author Josef Kříž <pepakriz@gmail.com>
+ *
+ * @ORM\MappedSuperclass()
  */
-class IdentifiedEntity extends BaseEntity implements IEntity
+abstract class IdentifiedEntity extends BaseEntity implements IEntity
 {
 
 
@@ -31,15 +33,8 @@ class IdentifiedEntity extends BaseEntity implements IEntity
 	/**
 	 * @return integer
 	 */
-	final public function getId()
+	public function getId()
 	{
-		if ($this instanceof Proxy && !$this->__isInitialized__ && !$this->id) {
-			$identifier = $this->getReflection()->getProperty('_identifier');
-			$identifier->setAccessible(TRUE);
-			$id = $identifier->getValue($this);
-			$this->id = reset($id);
-		}
-
 		return $this->id;
 	}
 
