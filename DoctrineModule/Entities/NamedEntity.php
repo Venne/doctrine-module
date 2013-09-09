@@ -26,7 +26,7 @@ class NamedEntity extends IdentifiedEntity
 	/**
 	 * @ORM\Column(type="string")
 	 */
-	protected $name;
+	protected $name = '';
 
 
 	/**
