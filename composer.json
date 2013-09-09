@@ -1,49 +1,49 @@
 {
-	"name":"venne/doctrine-module",
-	"description":"Doctrine module with macros and components",
-	"keywords":["cms", "nette", "venne", "module"],
-	"version":"2.1.0",
-	"authors":[
+	"name": "venne/doctrine-module",
+	"description": "Doctrine module with macros and components",
+	"keywords": ["cms", "nette", "venne", "module"],
+	"version": "2.1.0",
+	"authors": [
 		{
-			"name":"Josef Kříž",
-			"homepage":"http://josef-kriz.cz"
+			"name": "Josef Kříž",
+			"homepage": "http://josef-kriz.cz"
 		}
 	],
-	"require":{
-		"php":">=5.3.2",
-		"venne/forms-module":"2.1.x-dev",
-		"doctrine/orm":"2.4.x",
-		"symfony/yaml":"2.1.x",
+	"require": {
+		"php": ">=5.3.2",
+		"venne/forms-module": "2.1.*",
+		"doctrine/orm": "v2.4.0",
+		"symfony/yaml": "v2.3.4",
 		"doctrine/migrations": "dev-master"
 	},
-	"autoload":{
-		"psr-0":{
-			"DoctrineModule":""
+	"autoload": {
+		"psr-0": {
+			"DoctrineModule": ""
 		}
 	},
-	"extra":{
-		"branch-alias":{
-			"dev-master":"2.1.x-dev"
+	"extra": {
+		"branch-alias": {
+			"dev-master": "2.1-dev"
 		},
-		"venne":{
-			"configuration":{
-				"parameters":{
-					"database":{
-						"driver":"pdo_mysql",
-						"host":"",
-						"user":"",
-						"password":"",
-						"dbname":"",
-						"charset":"utf8",
-						"proxyDir":"%appDir%/proxy",
-						"proxyNamespace":"proxy",
-						"port":"",
-						"path":"",
-						"memory":""
+		"venne": {
+			"configuration": {
+				"parameters": {
+					"database": {
+						"driver": "pdo_mysql",
+						"host": "",
+						"user": "",
+						"password": "",
+						"dbname": "",
+						"charset": "utf8",
+						"proxyDir": "%appDir%/proxy",
+						"proxyNamespace": "proxy",
+						"port": "",
+						"path": "",
+						"memory": ""
 					}
 				},
-				"extensions":{
-					"doctrine":"DoctrineModule\\DI\\DoctrineExtension"
+				"extensions": {
+					"doctrine": "DoctrineModule\\DI\\DoctrineExtension"
 				}
 			}
 		}
