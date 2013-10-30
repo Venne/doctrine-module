@@ -250,7 +250,7 @@ class DoctrineExtension extends CompilerExtension
 
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationDriver'))
 			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), array_keys($paths)))
-			->addSetup('setFileExtension', '.php')
+			->addSetup('setFileExtension', 'Entity.php')
 			->setInternal(TRUE);
 
 
