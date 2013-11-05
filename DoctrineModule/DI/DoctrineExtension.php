@@ -212,6 +212,9 @@ class DoctrineExtension extends CompilerExtension
 			->setClass('DoctrineModule\DI\ConnectionChecker')
 			->setInternal(TRUE);
 
+		$container->addDefinition($this->prefix('checkConnectionMyFactory'))
+			->setClass('DoctrineModule\DI\ConnectionCheckerFactory', array($this->prefix('@checkConnectionFactory')));
+
 		$container->addDefinition($this->prefix('checkConnection'))
 			->setFactory("@doctrine.checkConnectionClass::checkConnection")
 			->setShared(FALSE);
