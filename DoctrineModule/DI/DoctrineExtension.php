@@ -510,9 +510,16 @@ class DoctrineExtension extends CompilerExtension
 	{
 		$container = $this->getContainerBuilder();
 		$evm = $container->getDefinition('doctrine.eventManagers.default');
+		$em = $container->getDefinition('doctrine.entityManagers.default');
 
 		foreach ($this->getSortedServices("listener") as $item) {
-			$evm->addSetup("addEventSubscriber", "@{$item}");
+			$class = $container->getDefinition($item)->class;
+
+			if (is_subclass_of($class, 'Doctrine\Common\EventSubscriber')) {
+				$evm->addSetup("addEventSubscriber", "@{$item}");
+			} else {
+				$em->addSetup('$service->getConfiguration()->getEntityListenerResolver()->register(?)', "@{$item}");
+			}
 		}
 	}
 
