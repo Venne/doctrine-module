@@ -129,22 +129,6 @@ class BaseRepository extends Doctrine\ORM\EntityRepository implements \DoctrineM
 
 	/**
 	 * @param string $alias
-	 * @return Doctrine\ORM\QueryBuilder|Doctrine\CouchDB\View\AbstractQuery $qb
-	 */
-	public function createQueryBuilder($alias = NULL)
-	{
-		$qb = $this->getEntityManager()->createQueryBuilder();
-
-		if ($alias !== NULL) {
-			$qb->select($alias)->from($this->getEntityName(), $alias);
-		}
-
-		return $qb;
-	}
-
-
-	/**
-	 * @param string $alias
 	 * @return Doctrine\ORM\Query
 	 */
 	public function createQuery($dql = NULL)
