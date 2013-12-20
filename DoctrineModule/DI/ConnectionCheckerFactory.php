@@ -11,12 +11,13 @@
 
 namespace DoctrineModule\DI;
 
-use Nette\Object;
+use Nette\Callback;
+use Venne\BaseFactory;
 
 /**
  * @author Josef Kříž <pepakriz@gmail.com>
  */
-class ConnectionCheckerFactory extends Object
+class ConnectionCheckerFactory extends BaseFactory
 {
 
 	/** @var Callback */
@@ -31,13 +32,7 @@ class ConnectionCheckerFactory extends Object
 
 	public function invoke()
 	{
-		return $this->checkConnection->invoke();
-	}
-
-
-	function __invoke()
-	{
-		return $this->invoke();
+		return Callback::create($this->checkConnection)->invoke();
 	}
 
 }
