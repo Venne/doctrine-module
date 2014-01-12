@@ -11,9 +11,9 @@
 
 namespace DoctrineModule\Forms\Controls;
 
-use Venne;
 use Nette\Forms\Controls\BaseControl;
 use Nette;
+use Venne;
 
 /**
  * @author     Josef Kříž
@@ -438,7 +438,7 @@ class ManyToOne extends BaseControl
 	 * @param $name
 	 * @return ManyToOne
 	 */
-	public function  setDependOn(\Nette\Forms\IControl $control, $name = NULL)
+	public function setDependOn(\Nette\Forms\IControl $control, $name = NULL)
 	{
 		$_this = $this;
 		$this->dependOn = array($control, $name ? : $control->name);
@@ -451,9 +451,12 @@ class ManyToOne extends BaseControl
 			$control->getControlPrototype()->onChange = "$('#frm{$form->name}-{$_this->name}_reload').click();";
 		};
 
-		$control->form->onSave[] = function ($form) use ($_this, $control, $name) {
+		$f = function ($form) use ($_this, $control, $name) {
 			$_this->setCriteria(array($name => $control->value));
 		};
+
+		$control->form->onAttached[] = $f;
+		$control->form->onLoad[] = $f;
 
 		return $this;
 	}
