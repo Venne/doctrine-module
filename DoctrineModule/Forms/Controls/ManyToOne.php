@@ -79,13 +79,12 @@ class ManyToOne extends BaseControl
 		if ($this->query) {
 			$items = $this->query->getQuery()->getResult();
 		} else {
-			$ref = $this->getParent()->data->getReflection()->getProperty($this->name)->getAnnotation('ORM\\' . $this->type);
-
-			$class = $ref["targetEntity"];
-			if (substr($class, 0, 1) != "\\") {
-				$class = "\\" . $this->getParent()->data->getReflection()->getNamespaceName() . "\\" . $class;
+			$meta = $this->form->mapper->entityManager->getClassMetadata(get_class($this->parent->data));
+			if (!$meta->hasAssociation($this->name)) {
+				throw new Nette\InvalidStateException;
 			}
 
+			$class = $meta->associationMappings[$this->name]['targetEntity'];
 			$items = $this->getParent()->form->mapper->entityManager->getRepository($class)->findBy($this->criteria, $this->orderBy, $this->limit, $this->offset);
 		}
 
