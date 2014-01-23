@@ -12,6 +12,7 @@
 namespace DoctrineModule\Mapping;
 
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
+use Nette\Utils\Strings;
 
 
 /**
@@ -22,7 +23,27 @@ class VenneNamingStrategy extends DefaultNamingStrategy
 
 	public function joinTableName($sourceEntity, $targetEntity, $propertyName = null)
 	{
+		if (Strings::endsWith($targetEntity, '::dynamic')) {
+			$method = 'get' . ucfirst($propertyName) . 'Name';
+			$targetEntity = call_user_func(array($sourceEntity, $method));
+		}
+
+		if (Strings::endsWith($sourceEntity, '::dynamic')) {
+			$method = 'get' . ucfirst($propertyName) . 'Name';
+			$sourceEntity = call_user_func(array($targetEntity, $method));
+		}
+
 		return strtolower($this->classToNamespace($sourceEntity)) . '_' . parent::joinTableName($sourceEntity, $targetEntity, $propertyName);
+	}
+
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function joinKeyColumnName($entityName, $referencedColumnName = null)
+	{
+		return strtolower($this->classToTableName($entityName) . '_' .
+			($referencedColumnName ?: $this->referenceColumnName()));
 	}
 
 
