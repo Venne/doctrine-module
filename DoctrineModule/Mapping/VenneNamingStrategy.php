@@ -24,13 +24,11 @@ class VenneNamingStrategy extends DefaultNamingStrategy
 	public function joinTableName($sourceEntity, $targetEntity, $propertyName = null)
 	{
 		if (Strings::endsWith($targetEntity, '::dynamic')) {
-			$method = 'get' . ucfirst($propertyName) . 'Name';
-			$targetEntity = call_user_func(array($sourceEntity, $method));
+			$targetEntity = $this->detectTargetEntity($sourceEntity, $propertyName);
 		}
 
 		if (Strings::endsWith($sourceEntity, '::dynamic')) {
-			$method = 'get' . ucfirst($propertyName) . 'Name';
-			$sourceEntity = call_user_func(array($targetEntity, $method));
+			$sourceEntity = $this->detectTargetEntity($targetEntity, $propertyName);
 		}
 
 		return strtolower($this->classToNamespace($sourceEntity)) . '_' . parent::joinTableName($sourceEntity, $targetEntity, $propertyName);
@@ -47,9 +45,24 @@ class VenneNamingStrategy extends DefaultNamingStrategy
 	}
 
 
+	/**
+	 * {@inheritdoc}
+	 */
 	protected function classToNamespace($className)
 	{
 		return substr($className, 0, strpos($className, '\\') - 6);
+	}
+
+
+	/**
+	 * @param string $entity
+	 * @param string $property
+	 * @return string
+	 */
+	private function detectTargetEntity($entity, $property)
+	{
+		$method = 'get' . ucfirst($property) . 'Name';
+		return call_user_func(array($entity, $method));
 	}
 
 }
