@@ -15,7 +15,7 @@ use Nette\DI\ContainerBuilder;
 use Nette\Reflection\ClassType;
 use Nette\Utils\Strings;
 use Venne;
-use Venne\Config\CompilerExtension;
+use Venne\DI\CompilerExtension;
 use Venne\Module\ModuleManager;
 
 /**
@@ -140,7 +140,6 @@ class DoctrineExtension extends CompilerExtension
 
 		// Cache
 		$cache = $container->addDefinition($this->prefix('cache'))
-			->setInternal(TRUE)
 			->setClass($config['cacheClass'])
 			->addSetup('$service->setNamespace(?)', array(md5(__DIR__)));
 
@@ -208,16 +207,14 @@ class DoctrineExtension extends CompilerExtension
 			$this->processEntityManager($name, $cfg);
 		}
 
-		$container->addDefinition($this->prefix('checkConnectionClass'))
-			->setClass('DoctrineModule\DI\ConnectionChecker')
-			->setInternal(TRUE);
+		$container->addDefinition($this->prefix('connectionChecker'))
+			->setClass('DoctrineModule\DI\ConnectionChecker');
 
-		$container->addDefinition($this->prefix('checkConnectionMyFactory'))
-			->setClass('DoctrineModule\DI\ConnectionCheckerFactory', array($this->prefix('@checkConnectionFactory')));
+		//$container->addDefinition($this->prefix('checkConnectionMyFactory'))
+		//	->setClass('DoctrineModule\DI\ConnectionCheckerFactory', array($this->prefix('@checkConnection')));
 
-		$container->addDefinition($this->prefix('checkConnection'))
-			->setFactory("@doctrine.checkConnectionClass::checkConnection")
-			->setShared(FALSE);
+		//$container->addDefinition($this->prefix('checkConnection'))
+		//	->setFactory("@DoctrineModule\DI\ConnectionChecker::checkConnection");
 
 		$container->addDefinition($this->prefix("entityFormMapper"))
 			->setClass("DoctrineModule\Forms\Mappers\EntityMapper", array("@entityManager"));
@@ -230,64 +227,38 @@ class DoctrineExtension extends CompilerExtension
 	{
 		$container = $this->getContainerBuilder();
 
-		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationRegistry'))
-			->setFactory("Doctrine\Common\Annotations\AnnotationRegistry::registerFile", array(dirname(ClassType::from('Doctrine\ORM\Version')->getFileName()) . '/Mapping/Driver/DoctrineAnnotations.php'))
-			->setShared(FALSE)
-			->setInternal(TRUE);
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationReader'))
-			->setClass('Doctrine\Common\Annotations\AnnotationReader', array($this->configurationsPrefix('@' . $name . 'AnnotationRegistry')))
-			->setShared(FALSE)
-			->setInternal(TRUE);
+			->setClass('Doctrine\Common\Annotations\AnnotationReader')
+			->addSetup('Doctrine\Common\Annotations\AnnotationRegistry::registerFile(?)', array(dirname(ClassType::from('Doctrine\ORM\Version')->getFileName()) . '/Mapping/Driver/DoctrineAnnotations.php'))
+			->setAutowired(FALSE);
 		$container->addDefinition($this->configurationsPrefix($name . 'CachedAnnotationReader'))
-			->setClass("Doctrine\Common\Annotations\CachedReader", array($this->configurationsPrefix('@' . $name . 'AnnotationReader'), "@doctrine.cache"))
-			->setInternal(TRUE);
+			->setClass("Doctrine\Common\Annotations\CachedReader", array($this->configurationsPrefix('@' . $name . 'AnnotationReader'), "@doctrine.cache"));
 
 		$paths = array();
-		foreach ($container->parameters['modules'] as $module) {
-			if ($module[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
-				foreach (\Nette\Utils\Finder::findFiles('*Entity.php')->from($module[ModuleManager::MODULE_PATH])->exclude('vendor/*')->exclude('tests/*') as $file) {
-					$paths[$file->getPath()] = TRUE;
-				}
-			}
+		foreach (\Nette\Utils\Finder::findFiles('*Entity.php')->from($container->parameters['libsDir'] . '/venne')->exclude('vendor/*')->exclude('tests/*') as $file) {
+			$paths[$file->getPath()] = TRUE;
 		}
 
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationDriver'))
 			->setClass("Doctrine\ORM\Mapping\Driver\AnnotationDriver", array($this->configurationsPrefix('@' . $name . 'CachedAnnotationReader'), array_keys($paths)))
-			->addSetup('setFileExtension', 'Entity.php')
-			->setInternal(TRUE);
-
-
-		$paths = array();
-		foreach ($container->parameters['modules'] as $module) {
-			if ($module[ModuleManager::MODULE_STATUS] === ModuleManager::STATUS_INSTALLED) {
-				foreach (\Nette\Utils\Finder::findFiles('*.dcm.yml')->from($module[ModuleManager::MODULE_PATH])->exclude('vendor/*') as $file) {
-					$paths[$file->getPath()] = TRUE;
-				}
-			}
-		}
-
-		$container->addDefinition($this->configurationsPrefix($name . 'YmlDriver'))
-			->setClass("Doctrine\ORM\Mapping\Driver\YamlDriver", array(array_keys($paths)))
-			->setInternal(TRUE);
+			->addSetup('setFileExtension', array('Entity.php'));
 
 		$container->addDefinition($this->configurationsPrefix($name . 'NamingStrategy'))
-			->setClass("DoctrineModule\Mapping\VenneNamingStrategy")
-			->setInternal(TRUE);
+			->setClass("DoctrineModule\Mapping\VenneNamingStrategy");
 
 
 		$container->addDefinition($this->configurationsPrefix($name))
 			->setClass("Doctrine\ORM\Configuration")
-			->addSetup('setMetadataCacheImpl', '@' . $this->prefix("cache"))
-			->addSetup("setQueryCacheImpl", '@' . $this->prefix("cache"))
-			->addSetup("setMetadataDriverImpl", $this->configurationsPrefix('@' . $name . ucfirst($config['mappingDriver']) . 'Driver'))
-			->addSetup("setProxyDir", $config['proxiesDir'])
-			->addSetup("setProxyNamespace", $config['proxiesNamespace'])
-			->addSetup('setNamingStrategy', $this->configurationsPrefix('@' . $name . "NamingStrategy"))
-			->setInternal(TRUE);
+			->addSetup('setMetadataCacheImpl',  array('@' .$this->prefix("cache")))
+			->addSetup("setQueryCacheImpl", array('@' . $this->prefix("cache")))
+			->addSetup("setMetadataDriverImpl",array( $this->configurationsPrefix('@' . $name . ucfirst($config['mappingDriver']) . 'Driver')))
+			->addSetup("setProxyDir", array($this->getContainerBuilder()->expand($config['proxiesDir'])))
+			->addSetup("setProxyNamespace", array($config['proxiesNamespace']))
+			->addSetup('setNamingStrategy', array($this->configurationsPrefix('@' . $name . "NamingStrategy")));
 
 		if ($container->parameters["debugMode"]) {
 			$container->getDefinition($this->configurationsPrefix($name))
-				->addSetup("setAutoGenerateProxyClasses", TRUE);
+				->addSetup("setAutoGenerateProxyClasses", array(TRUE));
 		}
 	}
 
@@ -413,8 +384,8 @@ class DoctrineExtension extends CompilerExtension
 
 		$container->addDefinition($this->connectionsPrefix($name))
 			->setClass('Doctrine\DBAL\Connection')
-			->setFactory('Doctrine\DBAL\DriverManager::getConnection', array($config, $config['eventManager']))
-			->addSetup('$panel = new DoctrineModule\Diagnostics\ConnectionPanel; $panel->setConnection($service); $service->getConfiguration()->setSQLLogger($panel); Nette\Diagnostics\Debugger::$bar->addPanel($panel); ? ', array(''));
+			->setFactory('Doctrine\DBAL\DriverManager::getConnection', array($config, $config['eventManager']));
+			//->addSetup('$panel = new DoctrineModule\Diagnostics\ConnectionPanel; $panel->setConnection($service); $service->getConfiguration()->setSQLLogger($panel); Nette\Diagnostics\Debugger::$bar->addPanel($panel); ? ', array(''));
 	}
 
 
@@ -521,9 +492,9 @@ class DoctrineExtension extends CompilerExtension
 			$class = $container->getDefinition($item)->class;
 
 			if (is_subclass_of($class, 'Doctrine\Common\EventSubscriber')) {
-				$evm->addSetup("addEventSubscriber", "@{$item}");
+				$evm->addSetup("addEventSubscriber", array("@{$item}"));
 			} else {
-				$em->addSetup('$service->getConfiguration()->getEntityListenerResolver()->register(?)', "@{$item}");
+				$em->addSetup('$service->getConfiguration()->getEntityListenerResolver()->register(?)', array("@{$item}"));
 			}
 		}
 	}
