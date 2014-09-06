@@ -230,12 +230,9 @@ class DoctrineExtension extends CompilerExtension
 	{
 		$container = $this->getContainerBuilder();
 
-		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationRegistry'))
-			->setFactory("Doctrine\Common\Annotations\AnnotationRegistry::registerFile", array(dirname(ClassType::from('Doctrine\ORM\Version')->getFileName()) . '/Mapping/Driver/DoctrineAnnotations.php'))
-			->setShared(FALSE)
-			->setInternal(TRUE);
 		$container->addDefinition($this->configurationsPrefix($name . 'AnnotationReader'))
-			->setClass('Doctrine\Common\Annotations\AnnotationReader', array($this->configurationsPrefix('@' . $name . 'AnnotationRegistry')))
+			->setClass('Doctrine\Common\Annotations\AnnotationReader')
+			->addSetup('Doctrine\Common\Annotations\AnnotationRegistry::registerFile(?)', array(dirname(ClassType::from('Doctrine\ORM\Version')->getFileName()) . '/Mapping/Driver/DoctrineAnnotations.php'))
 			->setShared(FALSE)
 			->setInternal(TRUE);
 		$container->addDefinition($this->configurationsPrefix($name . 'CachedAnnotationReader'))
